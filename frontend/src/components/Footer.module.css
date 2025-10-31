@@ -1,9 +1,9 @@
 .footer {
   padding: 20px;
-  background-color: #f0f0f0;
+  background-color: var(--bg-end);
   text-align: center;
-  border-top: 1px solid #e7e7e7;
-  color: #555;
+  border-top: 1px solid rgba(0,0,0,0.05); 
+  color: var(--muted); 
 }
 
 .text {

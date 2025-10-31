@@ -1,3 +1,6 @@
+/* ========================================
+ * ヒーローセクション (背景)
+ * ======================================== */
 .emolog-hero-container {
   height: 100%;
   width: 100%;
@@ -23,6 +26,9 @@
   z-index: 1;
 }
 
+/* ========================================
+ * ヒーローセクション (コンテンツ)
+ * ======================================== */
 .emolog-hero-content {
   position: relative;
   z-index: 2;
@@ -64,6 +70,9 @@
   margin: 24px auto 0 auto;
 }
 
+/* ========================================
+ * ナビゲーション (ボタン)
+ * ======================================== */
 .navigation {
   flex: none;
   width: 100%;
@@ -73,7 +82,7 @@
 .login-button {
   background-color: transparent;
   color: #ffffff;
-  border: 2px solid #ffffff;
+  border: 2px solid #ffffff; 
   font-size: 18px;
   font-weight: 600;
   padding: 12px 28px;
@@ -86,11 +95,15 @@
 .login-button:hover,
 .login-button:focus {
   background-color: #ffffff;
+  border-color: #ffffff;
   color: #111;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
+/* ========================================
+ * レスポンシブ (モバイル)
+ * ======================================== */
 @media (max-width: 900px) {
   .tagline-large { font-size: 32px; }
   .description { font-size: 16px; }

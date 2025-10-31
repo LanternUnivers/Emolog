@@ -1,53 +1,55 @@
-/* * ------------------------------------------------
- * ページ全体・配色
- * ------------------------------------------------
- */
-:root {
-  --bg-start: #f6fbf9;
-  --bg-end:   #eef7f3;
-  --card:     #ffffff;
-  --muted:    #7b8b83;
-  --accent:   #7fbba9; /* 優しいセージグリーン */
-  --shadow:   rgba(31, 45, 40, 0.06);
-}
-
+/* ========================================
+ * ページ基本レイアウト
+ * ======================================== */
 .diary-root {
   min-height: 100vh;
   padding: 24px;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  color: #223;
+  color: var(--foreground);
   background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
   box-sizing: border-box;
+  max-width: 1400px; 
+  margin: 0 auto;   
 }
 
-/* * ------------------------------------------------
- * ヘッダー (タイムラプスボタン含む)
- * ------------------------------------------------
- */
+/* ========================================
+ * ヘッダー (日付ナビゲーション)
+ * ======================================== */
 .diary-header {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
   background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));
-  padding:10px 12px;
-  border-radius:12px;
+  padding: 10px 12px;
+  border-radius: 12px;
   box-shadow: 0 6px 18px var(--shadow);
 }
-.diary-header h2 { margin:0; font-size:18px; font-weight:600; color:#234; }
+.diary-header h2 { 
+  margin: 0; 
+  font-size: 18px; 
+  font-weight: 600; 
+  color: var(--foreground); 
+}
 .diary-header button {
   background: var(--card);
   border: 1px solid rgba(124,139,130,0.12);
-  padding:8px 12px;
-  border-radius:10px;
-  cursor:pointer;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
   color: #2b3b35;
   box-shadow: 0 3px 8px rgba(50,70,60,0.04);
   transition: transform .12s ease, box-shadow .12s ease;
 }
-.diary-header button:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(50,70,60,0.06); }
+.diary-header button:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 8px 18px rgba(50,70,60,0.06); 
+}
 
+/* ========================================
+ * タイムラプス (リキャプチャ) ボタン
+ * ======================================== */
 .timelapse-btn {
     padding: 10px 16px;
     border-radius: 12px;
@@ -62,27 +64,29 @@
     gap: 8px;
     transition: transform 120ms ease, box-shadow 120ms ease, opacity 160ms ease;
 }
-.timelapse-btn:active { transform: scale(0.98); }
+.timelapse-btn:active { 
+  transform: scale(0.98); 
+}
 
 .glow {
-    background: linear-gradient(90deg, #ff8a00 0%, #e52e71 50%, #8a2be2 100%);
+    background: linear-gradient(90deg, #ff8a00 0%, var(--accent) 50%, #e52e71 100%);
     color: #fff;
     border: none;
-    box-shadow: 0 8px 30px rgba(229,46,113,0.28), 0 0 0 rgba(232, 88, 123, 0.35);
+    box-shadow: 0 8px 30px rgba(255, 78, 138, 0.28), 0 0 0 rgba(255, 78, 138, 0.35);
     animation: glowPulse 2.2s infinite ease-in-out, floatUp 3s infinite ease-in-out;
 }
 
 @keyframes glowPulse {
     0% {
-        box-shadow: 0 6px 24px rgba(229,46,113,0.18), 0 0 0 rgba(229,46,113,0.10);
+        box-shadow: 0 6px 24px rgba(255, 78, 138, 0.18), 0 0 0 rgba(255, 78, 138, 0.10);
         transform: translateY(0) scale(1);
     }
     50% {
-        box-shadow: 0 18px 40px rgba(229,46,113,0.30), 0 0 24px rgba(229,46,113,0.12);
+        box-shadow: 0 18px 40px rgba(255, 78, 138, 0.30), 0 0 24px rgba(255, 78, 138, 0.12);
         transform: translateY(-3px) scale(1.02);
     }
     100% {
-        box-shadow: 0 6px 24px rgba(229,46,113,0.18), 0 0 0 rgba(229,46,113,0.10);
+        box-shadow: 0 6px 24px rgba(255, 78, 138, 0.18), 0 0 0 rgba(255, 78, 138, 0.10);
         transform: translateY(0) scale(1);
     }
 }
@@ -93,10 +97,9 @@
     100% { transform: translateY(0); }
 }
 
-/* * ------------------------------------------------
- * カレンダー (グリッド)
- * ------------------------------------------------
- */
+/* ========================================
+ * カレンダー (テーブル)
+ * ======================================== */
 .calendar-wrapper {
     border-radius: 16px;
     padding: 8px;
@@ -113,10 +116,11 @@
     padding: 8px 6px;
     font-weight: 600;
     color: var(--muted);
-    font-size:13px;
+    font-size: 13px;
     text-align: center;
 }
 
+/* カレンダー (セル) */
 .day-cell {
     position: relative;
     overflow: visible;
@@ -129,7 +133,7 @@
     vertical-align: top;
 }
 .day-cell:hover {
-    box-shadow: 0 14px 36px rgba(12,12,20,0.08);
+    box-shadow: 0 14px 36px var(--shadow);
     transform: translateY(-4px);
     background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,248,250,0.98));
 }
@@ -144,11 +148,12 @@
     padding: 6px 8px;
     border-radius: 10px;
     font-size: 13px;
-    color: #333;
+    color: var(--foreground);
     background: rgba(0,0,0,0.04);
     margin-bottom: 6px;
 }
 
+/* カレンダー (サムネイル) */
 .thumbs {
     display: inline-flex;
     align-items: center;
@@ -184,42 +189,29 @@
 }
 
 .more-count {
-  position:absolute;
-  bottom:8px;
-  right:8px;
-  background: rgba(127,187,169,0.95);
-  color:#fff;
-  font-size:12px;
-  padding:4px 8px;
-  border-radius:999px;
-  box-shadow: 0 6px 14px rgba(127,187,169,0.12);
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(255, 78, 138, 0.12);
 }
 
-/* * ------------------------------------------------
- * 2カラムモーダル (画像拡大)
- * ------------------------------------------------
- */
+/* ========================================
+ * モーダル (共通)
+ * ======================================== */
 .modal {
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(0,0,0,0.6);
-  z-index:1000;
-  padding:20px;
-}
-
-.modal-content {
-  background: var(--card);
-  padding: 0;
-  max-width: 90vw;
-  max-height: 90vh;
-  width: 1000px; /* PCでの最大幅 */
-  overflow: hidden;
-  border-radius: 14px;
-  display: flex; /* 2カラムレイアウト */
-  box-shadow: 0 20px 50px rgba(20, 40, 35, 0.18);
+  z-index: 1000;
+  padding: 20px;
 }
 
 .close {
@@ -238,13 +230,27 @@
   transition: background 0.2s ease;
 }
 .close:hover {
-  background: #fff;
+  background: #fff; 
 }
 
-/* カラム1: 画像 */
+/* ========================================
+ * モーダル (写真詳細・2カラム)
+ * ======================================== */
+.modal-content {
+  background: var(--card);
+  padding: 0;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 1000px; 
+  overflow: hidden;
+  border-radius: 14px;
+  display: flex; 
+  box-shadow: 0 20px 50px rgba(50, 20, 40, 0.18);
+}
+
 .modal-image-wrapper {
-    position: relative;
-    flex: 6; /* 幅の比率 (60%) */
+    position: relative; 
+    flex: 6; 
     max-height: 90vh; 
     background: #222; 
     display: flex;
@@ -254,44 +260,12 @@
 .modal-image-wrapper img {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* 画像をコンテナに収める */
+    object-fit: contain;
     max-height: 90vh;
     display: block;
 }
 
-/* カラム2: 詳細 */
-.modal-details {
-    flex: 4; /* 幅の比率 (40%) */
-    max-height: 90vh;
-    overflow-y: auto; /* 詳細が長ければスクロール */
-    padding: 24px;
-    box-sizing: border-box; 
-    position: relative;
-    background: #fdfdfd;
-}
-.modal-details h3 {
-    margin: 0 0 8px 0;
-    color: #1a202c;
-    font-size: 18px;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 8px;
-    margin-top: 20px; /* 項目間のマージン */
-}
-.modal-details h3:first-of-type {
-    margin-top: 12px; /* 最初の <H3> の上マージン（閉じるボタン用） */
-}
-
-.modal-details p {
-    font-size: 16px;
-    color: #4a5568;
-    line-height: 1.6;
-    margin: 0 0 20px 0;
-}
-.modal-details .no-comment {
-    color: #999;
-    font-style: italic;
-}
-
+/* モーダル (スライドボタン) */
 .modal-nav {
     position: absolute;
     top: 50%;
@@ -312,75 +286,68 @@
     background: #fff;
     transform: translateY(-50%) scale(1.05);
 }
-
 .nav-prev {
     left: 12px;
 }
-
 .nav-next {
     right: 12px;
 }
 
+/* モーダル (詳細カラム) */
+.modal-details {
+    flex: 4;
+    max-height: 90vh;
+    overflow-y: auto; 
+    padding: 24px;
+    box-sizing: border-box; 
+    position: relative;
+    background: #fdfdfd;
+}
+.modal-details h3 {
+    margin: 0 0 8px 0;
+    color: #1a202c;
+    font-size: 18px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 8px;
+    margin-top: 20px; 
+}
+.modal-details h3:first-of-type {
+    margin-top: 12px; 
+}
+.modal-details p {
+    font-size: 16px;
+    color: #4a5568;
+    line-height: 1.6;
+    margin: 0 0 20px 0;
+}
+.modal-details .no-comment {
+    color: #999;
+    font-style: italic;
+}
+
 .ai-comment-box {
-    background: #f4f8ff;
-    border-left: 4px solid #4299e1; 
+    background: var(--bg-start);
+    border-left: 4px solid var(--accent);
     padding: 12px 16px;
     border-radius: 8px;
 }
 .ai-comment-box p {
-    margin: 0; /* <p> のデフォルトマージンをリセット */
+    margin: 0; 
 }
 
-/* * ------------------------------------------------
- * レスポンシブ (小画面)
- * ------------------------------------------------
- */
-@media (max-width:760px) {
-  .diary-root { padding:14px; }
-  .calendar thead th { font-size:12px; }
-  .thumb { width:34px; height:34px; border-radius:6px; }
-  .more-count { font-size:11px; padding:3px 6px; bottom:6px; right:6px; }
-
-  .modal-nav {
-        width: 36px;
-        height: 36px;
-        font-size: 20px;
-    }
-
-  /* 💡 モーダルを縦積みに変更 */
-  .modal-content {
-    flex-direction: column;
-    width: 90vw;
-    max-width: 450px; /* モバイルでの最大幅 */
-  }
-  .modal-image-wrapper {
-     flex: 0 1 auto; /* 縦に積むのでflex-growしない */
-     max-height: 50vh; /* 画面の上半分 */
-  }
-  .modal-details {
-    flex: 1 1 auto; /* 残りのスペースを取る */
-    max-height: 40vh; /* 画面の下半分 (スクロール) */
-  }
-  .close {
-    /* モバイルでは背景色をしっかりつける */
-    background: #fff; 
-  }
-}
-
-/* * ------------------------------------------------
- * タイムラプス (リキャプチャ) モーダル用 (ここから追加)
- * ------------------------------------------------
- */
+/* ========================================
+ * モーダル (タイムラプス)
+ * ======================================== */
 .timelapse-modal-content {
     background: var(--card, #ffffff);
     padding: 20px;
     border-radius: 14px;
     max-width: 90vw;
-    width: 800px; /* 動画プレーヤー用の幅 */
+    width: 800px; 
     max-height: 90vh;
     overflow: auto;
     position: relative;
-    box-shadow: 0 20px 50px rgba(20, 40, 35, 0.18);
+    box-shadow: 0 20px 50px rgba(50, 20, 40, 0.18);
     box-sizing: border-box;
 }
 
@@ -394,7 +361,7 @@
     display: inline-block;
     margin-top: 16px;
     padding: 10px 16px;
-    background: var(--accent, #7fbba9);
+    background: var(--accent);
     color: white;
     text-decoration: none;
     border-radius: 8px;
@@ -402,10 +369,39 @@
     transition: background 0.2s ease;
 }
 .download-button:hover {
-    background: #6aa997; /* 少し暗い色 */
+    background: #e52e71;
 }
 
-/* モーダルの .close ボタンは既存のスタイルを流用します 
-  (もし .close が .modal-details の内側に定義されていて動かない場合は、
-  .close の定義を .modal-details の外に出してください)
-*/
+/* ========================================
+ * レスポンシブ (モバイル)
+ * ======================================== */
+@media (max-width:760px) {
+  .diary-root { padding:14px; }
+  .calendar thead th { font-size:12px; }
+  .thumb { width:34px; height:34px; border-radius:6px; }
+  .more-count { font-size:11px; padding:3px 6px; bottom:6px; right:6px; }
+
+  .modal-nav {
+        width: 36px;
+        height: 36px;
+        font-size: 20px;
+    }
+
+  /* モーダルを縦積みに変更 */
+  .modal-content {
+    flex-direction: column;
+    width: 90vw;
+    max-width: 450px; 
+  }
+  .modal-image-wrapper {
+     flex: 0 1 auto;
+     max-height: 50vh;
+  }
+  .modal-details {
+    flex: 1 1 auto;
+    max-height: 40vh;
+  }
+  .close {
+    background: #fff; 
+  }
+}

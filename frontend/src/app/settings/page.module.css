@@ -1,11 +1,13 @@
-/* settings page base */
+/* ========================================
+ * ページ基本レイアウト
+ * ======================================== */
 .settings-page {
     font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
     margin: 0;
     padding: 24px 16px;
     box-sizing: border-box;
-    background-color: var(--background-color, var(--background, #ffffff));
-    color: var(--text-color, var(--foreground, #262626));
+    background-color: transparent;
+    color: var(--foreground);
 }
 
 .settings-container {
@@ -14,19 +16,18 @@
     margin: 0 auto;
     padding: 20px;
     position: relative;
-    border: 6px solid var(--accent-color, #80deea);
+    border: 6px solid var(--accent);
     border-radius: 12px;
-    background-color: var(--background-color, var(--background, #ffffff));
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+    background-color: var(--card); 
+    box-shadow: 0 4px 8px var(--shadow); 
 }
 
-/* settingsIcon */
 .settings-container .settings-icon {
     position: absolute;
     top: 20px;
     right: 20px;
     font-size: 24px;
-    color: var(--text-color, var(--foreground, #262626));
+    color: var(--foreground); 
     text-decoration: none;
     cursor: pointer;
     z-index: 10;
@@ -34,10 +35,12 @@
 
 .settings-container .settings-icon:hover,
 .settings-container .settings-icon-hover {
-    color: #8e8e8e;
+    color: var(--muted); 
 }
 
-/* profileHeader */
+/* ========================================
+ * プロフィールヘッダー (上部)
+ * ======================================== */
 .settings-container .profile-header {
     display: flex;
     align-items: center;
@@ -45,7 +48,6 @@
     padding-top: 10px;
 }
 
-/* profilePhotoArea */
 .settings-container .profile-photo-area {
     flex: 1;
     display: flex;
@@ -54,7 +56,6 @@
     position: relative;
 }
 
-/* profilePhoto */
 .settings-container .profile-photo {
     width: 150px;
     height: 150px;
@@ -65,25 +66,21 @@
     z-index: 1;
 }
 
-/* cameraIcon */
 .settings-container .camera-icon {
     position: absolute;
-    /* translate(-50%, -50%)に対応するため、topとleftを調整 */
     top: 43%; 
     left: 47%;
     transform: translate(-50%, -50%);
     font-size: 60px;
-    color: var(--camera-color, #00bcd4);
+    color: var(--accent);
     z-index: 2;
     pointer-events: none;
 }
 
-/* profileInfoArea */
 .settings-container .profile-info-area {
     flex: 2;
 }
 
-/* userActions */
 .settings-container .user-actions {
     display: flex;
     align-items: center;
@@ -91,7 +88,6 @@
     min-height: 40px;
 }
 
-/* username */
 .settings-container .username {
     font-size: 28px;
     font-weight: 300;
@@ -101,37 +97,23 @@
     margin-bottom: 0;
 }
 
-/* editButton */
-.settings-container .edit-button {
-    background-color: var(--secondary-color, #efefef);
-    color: var(--text-color, var(--foreground, #262626));
-    border: 1px solid var(--border-color, #dbdbdb);
-    border-radius: 4px;
-    padding: 5px 12px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
-    outline: none;
-    align-self: center;
-}
-
-/* bioText */
 .settings-container .bio-text {
     font-size: 16px;
     margin-top: 0;
     margin-bottom: 0;
 }
 
-/* editForm */
+/* ========================================
+ * 編集フォーム
+ * ======================================== */
 .settings-container .edit-form {
     padding: 20px;
-    border: 1px solid var(--border-color, #dbdbdb);
+    border: 1px solid #dbdbdb;
     border-radius: 8px;
-    background-color: var(--background-color, var(--background, #ffffff));
+    background-color: var(--card);
     margin-top: 20px;
 }
 
-/* formGroup */
 .settings-container .form-group {
     margin-bottom: 15px;
 }
@@ -140,7 +122,7 @@
     width: 100%;
     padding: 8px;
     border-radius: 4px;
-    border: 1px solid var(--border-color, #dbdbdb);
+    border: 1px solid #dbdbdb;
     box-sizing: border-box;
     margin-top: 5px;
 }
@@ -149,42 +131,31 @@
     resize: vertical;
 }
 
-/* saveButton */
-.settings-container .save-button {
-    background-color: var(--primary-color, #0095f6);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
-    font-weight: bold;
-    cursor: pointer;
+.edit-form .form-group-flex {
+    display: flex;
+    align-items: center;
+    gap: 15px;
     margin-top: 10px;
 }
 
-/* photoEditButton */
-.settings-container .photo-edit-button {
-    background-color: var(--background-color, var(--background, #ffffff));
-    color: var(--primary-color, #0095f6);
-    border: 1px solid var(--primary-color, #0095f6);
-    border-radius: 4px;
-    padding: 8px 16px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
-    margin-top: 0;
-    margin-bottom: 0;
+.edit-form .form-profile-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
-/* settingsTitle */
+/* ========================================
+ * 設定リスト (下部)
+ * ======================================== */
 .settings-container .settings-title {
     font-size: 26px;
     font-weight: 300;
     margin-bottom: 30px;
-    border-bottom: 1px solid var(--border-color, #dbdbdb);
+    border-bottom: 1px solid #dbdbdb;
     padding-bottom: 10px;
 }
 
-/* settingsItem */
 .settings-container .settings-item {
     padding: 15px 0;
     border-bottom: 1px solid #efefef;
@@ -207,9 +178,62 @@
     border-bottom: none !important;
 }
 
-/* settingsButton */
+.settings-container .settings-checkbox-label {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.settings-container .password-change-form {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+/* ========================================
+ * ボタンスタイル
+ * ======================================== */
+.settings-container .edit-button {
+    background-color: var(--bg-end);
+    color: var(--foreground);
+    border: 1px solid rgba(0,0,0,0.1); 
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    outline: none;
+    align-self: center;
+}
+
+.settings-container .save-button {
+    background-color: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.settings-container .photo-edit-button {
+    background-color: var(--card); 
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 .settings-container .settings-button {
-    background-color: var(--primary-color, #0095f6);
+    background-color: var(--accent);
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -220,7 +244,6 @@
     margin-top: 10px;
 }
 
-/* settingsDangerButton */
 .settings-container .settings-danger-button {
     background-color: transparent;
     color: var(--danger-color, red);
@@ -233,44 +256,13 @@
     margin-top: 10px;
 }
 
-/* settingsCheckboxLabel */
-.settings-container .settings-checkbox-label {
-    display: block;
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-/* passwordChangeForm */
-.settings-container .password-change-form {
-    margin-top: 15px;
-    padding: 15px;
-    border: 1px solid var(--border-color, #dbdbdb);
-    border-radius: 4px;
-    background-color: #f9f9f9;
-}
-
-/* 「← プロフィールに戻る」ボタン用のマージン */
+/* ========================================
+ * ユーティリティクラス
+ * ======================================== */
 .settings-container .edit-button.mb-20 {
     margin-bottom: 20px;
 }
 
-/* 編集フォーム内のプロフィール写真エリア */
-.edit-form .form-group-flex {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-top: 10px;
-}
-
-/* 編集フォーム内のプレビュー画像 */
-.edit-form .form-profile-img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-/* 汎用マージンヘルパー（キャンセルボタン用） */
 .settings-container .ml-10 {
     margin-left: 10px;
 }

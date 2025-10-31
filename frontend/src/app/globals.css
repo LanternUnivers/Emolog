@@ -1,10 +1,30 @@
 @import "tailwindcss";
 
+/* ========================================
+ * カラーパレット (ピンク系)
+ * ======================================== */
 :root {
+  /* レイアウト */
   --header-height: 96px;
   --footer-height: 72px;
-  --background: #ffffff;
-  --foreground: #171717;
+
+  /* メインカラー */
+  --accent: #ff4e8a;
+  --accent-light-bg: rgba(255, 78, 138, 0.1);
+  --header-bg: #eeaee9;
+  
+  /* 背景・前景 */
+  --background: #fefcff;
+  --foreground: #223; /* 基本文字色 */
+  --bg-start: #fefcff;
+  --bg-end: #fdf9fd;
+  
+  /* UI要素 */
+  --card: #ffffff;
+  --muted: #7f788b;
+  --shadow: rgba(50, 20, 40, 0.06);
+
+  /* フォント */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
@@ -15,8 +35,13 @@
   }
 }
 
-/* Base reset and layout helpers */
-html, body, #root, #__next, main { height: 100%; }
+/* ========================================
+ * 基本レイアウト (リセット)
+ * ======================================== */
+html, body, #root, #__next, main { 
+  height: 100%; 
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -27,10 +52,26 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Make body a column flex so footer can be pushed to the bottom */
-.app-root { display: flex; flex-direction: column; min-height: 100vh; }
-.app-main { flex: 1 1 auto; }
+/* ========================================
+ * レイアウトヘルパー
+ * ======================================== */
+.app-root { 
+  display: flex; 
+  flex-direction: column; 
+  min-height: 100vh; 
+}
 
-/* Small global utilities */
-a { color: inherit; text-decoration: none; }
-img { max-width: 100%; height: auto; display: block; }
+.app-main { 
+  flex: 1 1 auto; 
+}
+
+a { 
+  color: inherit; 
+  text-decoration: none; 
+}
+
+img { 
+  max-width: 100%; 
+  height: auto; 
+  display: block; 
+}

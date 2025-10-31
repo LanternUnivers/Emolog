@@ -1,73 +1,81 @@
-/* frontend/src/app/user-home/page.module.css */
-
-/* Define a custom emotional color palette (Turn 3) */
-:root {
-  --color-ivory: #fdfcfd;
-  --color-soft-lavender: #f3f0f7;
-  --color-deep-lavender: #8a2be2; /* Blue-violet */
-  --color-soft-berry: #eb2563; /* Accent for streak */
-  --color-text-dark: #2c213a;
-  --color-text-muted: #7f788b;
+/* ========================================
+ * ページレイアウト (メイングリッド)
+ * ======================================== */
+.mainGrid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px; 
+  padding: 40px 24px; 
+  align-items: start; 
+  height: max-content; 
+  max-width: 1200px; 
+  margin: 0 auto;
+  background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
 }
 
-.header{
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 24px 16px; 
-  border-bottom: 1px solid #e6e9ef;
-  background-color: var(--color-ivory); /* Soft header background */
-  box-shadow: 0 1px 4px rgba(0,0,0,0.02);
-}
-.brand h1{ margin: 0; font-size: 20px }
-.tag{ color: var(--color-text-muted); margin: 0 }
-.headerButtons{ margin-left: auto; display: flex; gap: 8px }
-.btn{ background: var(--color-soft-berry); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer }
-.btn:hover{ opacity: 0.95 }
-
-.streakWrap{ margin: 24px 16px }
-.userPanel{
-  background: transparent;
-  border-radius: 8px;
+.userPanel, 
+.streakColumn {
+  box-sizing: border-box;
   padding: 0;
-  box-shadow: none;
-  text-align: center;
-  /* height/flex removed for natural sizing (Turn 5/6 fix) */
 }
-.userPanel .modalWrap{
+
+.streakColumn { 
+  align-items: flex-end; 
+}
+
+/* ========================================
+ * 汎用カードスタイル
+ * ======================================== */
+.modalWrap {
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.userPanel .modalWrap,
+.streakColumn .modalWrap {
   min-height: 0;
-  /* flex/height removed for natural sizing (Turn 5/6 fix) */
   justify-content: center;
   align-items: center;
   padding: 16px 0;
 }
-/* Reusable Card Style (User Panel & Streak Card) */
-.userPanel .modalCard, .modalCard{
+
+.userPanel .modalCard, 
+.modalCard {
   min-height: 0;
   width: 100%;
   max-width: none;
-  background: var(--color-ivory); 
-  border-radius: 16px; /* More rounded (Turn 3) */
-  color: var(--color-text-dark); 
+  background: var(--card); 
+  border-radius: 16px; 
+  color: var(--foreground); 
   text-align: center;
-  padding: 32px 24px; /* Increased padding (Turn 3) */
-  min-height: 0;
+  padding: 32px 24px;
   position: relative;
-  border: 1px solid rgba(138,43,226,0.08); 
-  box-shadow: 0 8px 24px rgba(44,33,58,0.06), 0 0 0 4px var(--color-soft-lavender); /* Shadow (Turn 3) */
-  transition: transform 0.3s cubic-bezier(.2,.9,.2,1), box-shadow 0.3s ease-out; /* Transition (Turn 3) */
+  border: 1px solid rgba(255, 78, 138, 0.1);
+  box-shadow: 0 8px 24px var(--shadow), 0 0 0 4px var(--bg-end);
+  transition: transform 0.3s cubic-bezier(.2,.9,.2,1), box-shadow 0.3s ease-out;
 }
-.modalCard:hover, .userPanel .modalCard:hover {
+
+.modalCard:hover, 
+.userPanel .modalCard:hover {
   transform: translateY(-4px); 
-  box-shadow: 0 16px 36px rgba(44,33,58,0.12), 0 0 0 4px var(--color-soft-lavender);
+  box-shadow: 0 16px 36px rgba(50, 20, 40, 0.1), 0 0 0 4px var(--bg-end);
 }
 
+/* ========================================
+ * ユーザーパネル (左側)
+ * ======================================== */
+.userPanel {
+  background: transparent;
+  border-radius: 8px;
+  box-shadow: none;
+  text-align: center;
+}
 
-.userAvatar{
+.userAvatar {
   width: 80px; 
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-deep-lavender), var(--color-soft-berry)); 
+  background: linear-gradient(135deg, var(--accent), #e52e71);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -78,6 +86,107 @@
   min-height: 0;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
+
+.userName { 
+  margin: 8px 0 4px; 
+  font-size: 24px; 
+  font-weight: 700;
+  color: var(--foreground); 
+}
+
+.userMeta { 
+  color: var(--muted); 
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* ========================================
+ * ストリーク (右側)
+ * ======================================== */
+.modalCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bigNumber {
+  font-size: 110px; 
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: none;
+  color: var(--accent);
+}
+
+.bigHeadline {
+  margin: 16px 0 8px;
+  font-size: 24px; 
+  color: var(--foreground); 
+  font-weight: 700;
+}
+
+.description {
+  margin: 0 12px 14px;
+  color: var(--foreground); 
+  font-size: 15px;
+}
+
+.modalDivider {
+  height: 1px;
+  background: rgba(0,0,0,0.08);
+  margin: 16px 0 0;
+}
+
+/* ========================================
+ * サブナビゲーション (下部ボタン)
+ * ======================================== */
+.subNav {
+  display: flex;
+  flex-direction: row; 
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 16px 40px;
+}
+
+.navButton {
+  background: linear-gradient(135deg, var(--accent) 0%, #e52e71 100%);
+  color: white;
+  padding: 18px 40px;
+  border-radius: 12px; 
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+  width: 240px; 
+  text-align: center;
+  border: none;
+  box-shadow: 0 8px 20px rgba(255, 78, 138, 0.35);
+  transition: transform 0.2s cubic-bezier(.2,.9,.2,1), box-shadow 0.2s ease-out;
+}
+
+.navButton:hover {
+  background: linear-gradient(135deg, #ff8ab4 0%, #ff4e8a 100%);
+  transform: translateY(-5px); 
+  box-shadow: 0 12px 28px rgba(255, 78, 138, 0.5);
+}
+
+/* ========================================
+ * ※ おそらく不要なスタイル (ヘッダーコンポーネント用)
+ * ======================================== */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 16px; 
+  border-bottom: 1px solid #e6e9ef;
+  background-color: var(--card); 
+  box-shadow: 0 1px 4px var(--shadow); 
+}
+.brand h1{ margin: 0; font-size: 20px }
+.tag{ color: var(--muted); margin: 0 } 
+.headerButtons{ margin-left: auto; display: flex; gap: 8px }
+.btn{ background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer }
+.btn:hover{ opacity: 0.95 }
+.streakWrap{ margin: 24px 16px }
 .icon{
   width: 36px;
   height: 36px;
@@ -90,7 +199,7 @@
 }
 .titleText{
   font-weight: 600;
-  color: var(--color-text-dark);
+  color: var(--foreground);
 }
 .divider{
   height: 1px;
@@ -105,7 +214,7 @@
 .rangeLabel{
   width: 36px;
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--muted);
 }
 .progressBarWrap{
   flex: 1;
@@ -123,13 +232,13 @@
 }
 .progressFill{
   height: 100%;
-  background: linear-gradient(90deg, var(--color-soft-berry), #ff4da6);
+  background: linear-gradient(90deg, var(--accent), #ff8ab4);
   border-radius: 999px 0 0 999px;
 }
 .progressText{
   margin-top: 6px;
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--muted); 
 }
 .panelFooter{
   display: flex;
@@ -137,7 +246,7 @@
   margin-top: 12px;
 }
 .orangeBtn{
-  background: var(--color-soft-berry);
+  background: var(--accent);
   color: white;
   border: none;
   padding: 8px 14px;
@@ -146,124 +255,13 @@
   cursor: pointer;
 }
 .orangeBtn:hover{ opacity: 0.95 }
-
-/* modal-style big streak */
-.modalWrap{
-  /* flex/height removed for natural sizing (Turn 5/6 fix) */
-  justify-content: center;
-  padding: 20px 0;
-}
-.modalCard{
-  /* Reusing .userPanel .modalCard styles defined above */
-  width: 100%;
-  max-width: none; 
-  text-align: center;
-  padding: 32px 24px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.bigNumber{
-  font-size: 110px; 
-  font-weight: 900;
-  line-height: 1;
-  text-shadow: none;
-  color: var(--color-deep-lavender); 
-}
-.bigHeadline{
-  margin: 16px 0 8px;
-  font-size: 24px; 
-  color: var(--color-text-dark);
-  font-weight: 700;
-}
-.description{
-  margin: 0 12px 14px;
-  color: var(--color-text-dark);
-  font-size: 15px;
-}
-.modalDivider{
-  height: 1px;
-  background: rgba(0,0,0,0.08);
-  margin: 16px 0 0;
+.footerGrass{
+  display: none;
 }
 
-@media (max-width: 480px){
-  .bigNumber{ font-size: 80px }
-}
-
-/* main grid layout */
-.mainGrid{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px; /* Increased gap (Turn 3) */
-  padding: 40px 24px; /* Increased padding (Turn 3) */
-  align-items: start; /* Fix: Card stretches vertically (Turn 6 Fix) */
-  height: max-content; /* Limit height to internal content */
-  max-width: 1200px; 
-  margin: 0 auto;
-  background: linear-gradient(180deg, var(--color-ivory), var(--color-soft-lavender)); /* Background (Turn 3) */
-}
-.userName{ 
-  margin: 8px 0 4px; 
-  font-size: 24px; 
-  font-weight: 700;
-  color: var(--color-text-dark);
-}
-.userMeta{ 
-  color: var(--color-text-muted); 
-  font-size: 16px;
-  font-weight: 500;
-}
-.streakColumn{ 
-  /* display: flex; flex-direction: column; justify-content: flex-start; removed (Turn 5/6 fix) */
-  align-items: flex-end; 
-}
-
-/* ensure the right column's modalWrap behaves like the left one */
-.streakColumn .modalWrap{
-  min-height: 0;
-  /* flex/height removed for natural sizing (Turn 5/6 fix) */
-  justify-content: center;
-  align-items: center;
-  padding: 16px 0;
-}
-
-/* normalize box model for consistent sizing */
-.userPanel, .streakColumn{
-  box-sizing: border-box;
-  padding: 0;
-}
-
-/* sub navigation below the main columns - Stylish Redesign */
-.subNav{
-  display: flex;
-  flex-direction: row; 
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 16px;
-  padding: 32px 16px 40px;
-}
-.navButton{
-  background: linear-gradient(135deg, var(--color-deep-lavender) 0%, var(--color-soft-berry) 100%);
-  color: white;
-  padding: 18px 40px;
-  border-radius: 12px; 
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 16px;
-  width: 240px; 
-  text-align: center;
-  border: none;
-  box-shadow: 0 8px 20px rgba(138,43,226,0.35); 
-  transition: transform 0.2s cubic-bezier(.2,.9,.2,1), box-shadow 0.2s ease-out;
-}
-.navButton:hover{
-  background: linear-gradient(135deg, #a55aed 0%, #ff6896 100%);
-  transform: translateY(-5px); 
-  box-shadow: 0 12px 28px rgba(138,43,226,0.5); 
-}
-
+/* ========================================
+ * レスポンシブ対応 (モバイル)
+ * ======================================== */
 @media (max-width: 768px){
   .mainGrid{ 
     grid-template-columns: 1fr; 
@@ -271,7 +269,6 @@
   }
   .streakColumn{ order: 2 }
   .userPanel{ order: 1 }
-  /* Sub Nav mobile adjustments */
   .subNav{
     flex-direction: column; 
     gap: 12px;
@@ -285,7 +282,6 @@
   }
 }
 
-/* footer grass: hiding for a cleaner look */
-.footerGrass{
-  display: none;
+@media (max-width: 480px){
+  .bigNumber{ font-size: 80px }
 }

@@ -1,7 +1,9 @@
-/* ルートコンテナ: ページ固有のスコープ */
+/* ========================================
+ * ページ基本レイアウト
+ * ======================================== */
 .postPage {
     font-family: sans-serif;
-    background-color: var(--background-color, #f0f0f5);
+    background-color: transparent;
     margin: 0;
     padding: 32px 16px; 
     box-sizing: border-box;
@@ -18,24 +20,25 @@
     justify-content: flex-start;
     margin: 0 auto; 
     overflow: visible; 
-    background: var(--background-color, #ffffff);
+    background: var(--card); 
     border-radius: 8px;
+    box-shadow: 0 6px 18px var(--shadow); 
 }
 
 .postTitle {
-    color: #4a5568;
+    color: var(--foreground); 
     margin-bottom: 25px;
 }
 
-.photoArea {
-    /* このクラスに特別なスタイルがなければ、divのままでもOK */
-}
+/* ========================================
+ * フォーム要素 (写真・キャプション)
+ * ======================================== */
+.photoArea { }
 
-/* 写真選択ボタン */
 .uploadLabel {
     display: block;
     padding: 20px;
-    background-color: #5A67D8; 
+    background-color: var(--accent);
     color: white;
     border-radius: 8px;
     cursor: pointer;
@@ -44,31 +47,27 @@
     font-size: 1.1em;
 }
 
-/* プレビュー画像 */
 .previewImage {
     max-width: 100%;
     max-height: 60vh;
     object-fit: contain;
     border-radius: 8px;
     margin-bottom: 20px;
-    border: 2px solid #5A67D8; 
+    border: 2px solid var(--accent);
 }
 
-/* コメント入力欄 */
 .captionArea {
     text-align: left;
     margin-bottom: 20px;
 }
 
-/* コメント用ラベル */
 .captionLabel {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #4a5568;
+    color: var(--foreground); 
 }
 
-/* コメント用テキストエリア */
 .captionTextarea {
     width: 100%;
     padding: 10px;
@@ -79,11 +78,10 @@
     box-sizing: border-box;
 }
 
-/* 送信ボタン */
 .submitButton {
     width: 100%;
     padding: 15px;
-    background-color: #38A169;
+    background-color: var(--accent);
     color: white;
     border: none;
     border-radius: 8px;
@@ -91,13 +89,15 @@
     cursor: pointer;
 }
 
-
 .submitButton:disabled {
-    background-color: #BEE3F8;
+    background-color: var(--muted);
+    color: #f0f0f0;
     cursor: not-allowed;
 }
 
-/* ローディング画面 */
+/* ========================================
+ * オーバーレイ (ローディング)
+ * ======================================== */
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -112,17 +112,9 @@
     z-index: 4000;
 }
 
-/* プレビュー画像の最大サイズ調整 */
-.photoArea .previewImage {
-    max-width: 100%;
-    max-height: 60vh;
-    object-fit: contain;
-}
-
-/* -------------------------------------- */
-/* 💡 AI分析結果モーダルのためのCSS */
-/* -------------------------------------- */
-
+/* ========================================
+ * 結果表示モーダル
+ * ======================================== */
 .result-modal-overlay {
     position: fixed;
     top: 0;
@@ -133,12 +125,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000; /* ローディングオーバーレイより高く */
+    z-index: 2000; 
     animation: fadeIn 300ms ease-out;
 }
 
 .result-modal-card {
-    background: #ffffff;
+    background: var(--card); 
     padding: 30px;
     border-radius: 16px;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
@@ -151,7 +143,6 @@
     overflow: hidden;
 }
 
-/* 閉じるボタン */
 .close-button {
     position: absolute;
     top: 10px;
@@ -178,30 +169,30 @@
 
 .result-emotion {
     font-size: 16px;
-    color: #4a5568;
+    color: var(--foreground); 
     margin-bottom: 25px;
     padding: 8px 15px;
-    background: #f0f4f8;
+    background: var(--bg-end);
     border-radius: 8px;
     display: inline-block;
 }
 
 .result-emotion span {
     font-weight: bold;
-    color: #5A67D8; /* Default accent */
+    color: var(--accent);
 }
 
 .ai-comment-box {
     margin-bottom: 30px;
     padding: 15px;
-    background: #f7fbf8;
+    background: var(--bg-start);
     border-radius: 10px;
-    border-left: 4px solid #38A169;
+    border-left: 4px solid var(--accent);
 }
 
 .ai-comment-label {
     font-size: 13px;
-    color: #4a5568;
+    color: var(--muted);
     margin-bottom: 5px;
     font-weight: 600;
 }
@@ -215,7 +206,7 @@
 }
 
 .ok-button {
-    background-color: #38A169;
+    background-color: var(--accent);
     color: white;
     border: none;
     border-radius: 8px;
@@ -226,10 +217,12 @@
 }
 
 .ok-button:hover {
-    background-color: #2f855a;
+    background-color: #e52e71; /* accentの暗い色 */
 }
 
-/* 感情ごとの演出 */
+/* ========================================
+ * モーダル (感情ごとのテーマ)
+ * ======================================== */
 .emotion-happy {
     background: linear-gradient(135deg, #fffde7, #ffecb3);
 }
@@ -239,48 +232,43 @@
 .emotion-sad {
     background: linear-gradient(135deg, #e3f2fd, #bbdefb);
 }
-.emotion-sad .result-icon { animation: none; color: #1e88e5; }
 .emotion-sad .result-emotion span { color: #1e88e5; }
 .emotion-sad .ai-comment-box { border-left-color: #1e88e5; background: #eef7ff; }
 
 .emotion-anger {
     background: linear-gradient(135deg, #ffebee, #ffcdd2);
 }
-.emotion-anger .result-icon { animation: shake 0.5s infinite; color: #e53935; }
 .emotion-anger .result-emotion span { color: #e53935; }
 .emotion-anger .ai-comment-box { border-left-color: #e53935; background: #fff4f5; }
 
 .emotion-calm {
     background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
 }
-.emotion-calm .result-icon { animation: gentleFloat 4s infinite ease-in-out; color: #43a047; }
 .emotion-calm .result-emotion span { color: #43a047; }
 .emotion-calm .ai-comment-box { border-left-color: #43a047; background: #f3fff4; }
 
-/* アニメーション */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+/* ========================================
+ * アニメーション
+ * ======================================== */
+@keyframes fadeIn { 
+  from { opacity: 0; } 
+  to { opacity: 1; } 
 }
-
-@keyframes popIn {
-    from { transform: scale(0.7); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+@keyframes popIn { 
+  from { transform: scale(0.7); opacity: 0; } 
+  to { transform: scale(1); opacity: 1; } 
 }
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+@keyframes pulse { 
+  0% { transform: scale(1); } 
+  50% { transform: scale(1.05); } 
+  100% { transform: scale(1); } 
 }
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-5px); }
-    40%, 80% { transform: translateX(5px); }
+@keyframes shake { 
+  0%, 100% { transform: translateX(0); } 
+  20%, 60% { transform: translateX(-5px); } 
+  40%, 80% { transform: translateX(5px); } 
 }
-
-@keyframes gentleFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+@keyframes gentleFloat { 
+  0%, 100% { transform: translateY(0); } 
+  50% { transform: translateY(-5px); } 
 }

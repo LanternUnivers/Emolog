@@ -1,88 +1,92 @@
-:root{
-  --bg: #f5f7fb;
-  --card: #ffffff;
-  --accent: #2563eb;
-  --muted: #6b7280;
-  --danger: #ef4444;
-}
-
-.wrapper{
+/* ========================================
+ * ページラッパー
+ * ======================================== */
+.wrapper {
   min-height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg,var(--bg),#ffffff);
+  background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
   padding: 24px;
 }
 
-.card{
+/* ========================================
+ * フォームカード
+ * ======================================== */
+.card {
   width: 100%;
   max-width: 420px;
   background: var(--card);
   padding: 28px;
   border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+  box-shadow: 0 6px 18px var(--shadow);
   display: flex;
   flex-direction: column;
 }
 
-.title{
+.title {
   margin: 0 0 12px 0;
   font-size: 22px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--foreground);
 }
 
-.label{
+/* ========================================
+ * フォーム要素 (ラベル・入力欄)
+ * ======================================== */
+.label {
   font-size: 13px;
   color: var(--muted);
   margin-top: 12px;
   margin-bottom: 6px;
 }
 
-.input{
+.input {
   padding: 10px 12px;
   border: 1px solid #e6e9ef;
   border-radius: 8px;
   font-size: 14px;
 }
 
-.actions{
+/* ========================================
+ * ボタン
+ * ======================================== */
+.actions {
   margin-top: 18px;
   display: flex;
   gap: 10px;
   align-items: center;
 }
 
-.button{
+.button {
   margin-top: 18px;
   background: var(--accent);
   color: white;
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1px solid transparent; /* make same border-box as secondary */
+  border: 1px solid transparent;
   cursor: pointer;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  height: 42px; /* fixed height to keep alignment */
+  height: 42px;
 }
 
 .button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.button:disabled{
+.button:disabled {
   opacity: 0.6;
   cursor: default;
 }
 
-.secondary{
+.secondary {
   background: none;
   border: 1px solid #e6e9ef;
-  color: #0f172a;
+  color: var(--foreground);
   padding: 10px 14px;
   border-radius: 10px;
   cursor: pointer;
@@ -90,26 +94,44 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  height: 42px; /* match primary */
-  margin-top: 18px; /* match primary button's top margin */
+  height: 42px;
+  margin-top: 18px;
 }
 
-.secondary:focus-visible{ outline: 2px solid rgba(37,99,235,0.2); outline-offset:2px }
+.secondary:focus-visible { 
+  outline: 2px solid var(--accent-light-bg); /* globals.cssで定義した薄いピンク */
+  outline-offset: 2px; 
+}
 
-.error{
+/* ========================================
+ * メッセージ (エラー・成功)
+ * ======================================== */
+.error {
   margin-top: 10px;
-  color: var(--danger);
+  color: var(--danger, #ef4444); /* 危険色はそのまま */
   font-size: 13px;
 }
 
-.footer{
+.success {
+  margin-top: 10px;
+  color: #22c55e;
+  font-size: 13px;
+  padding: 8px 12px;
+  background-color: #f0fdf4;
+  border-radius: 8px;
+}
+
+/* ========================================
+ * フッター (リンク)
+ * ======================================== */
+.footer {
   margin-top: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.link{
+.link {
   background: none;
   border: none;
   color: var(--accent);
@@ -117,16 +139,15 @@
   padding: 4px 6px;
 }
 
-@media (max-width: 480px){
-  .card{ padding: 20px; border-radius: 8px; }
-  .title{ font-size: 20px }
-}
-
-.success {
-  margin-top: 10px;
-  color: #22c55e; /* 緑色 */
-  font-size: 13px;
-  padding: 8px 12px;
-  background-color: #f0fdf4; /* 薄い緑色の背景 */
-  border-radius: 8px;
+/* ========================================
+ * レスポンシブ (モバイル)
+ * ======================================== */
+@media (max-width: 480px) {
+  .card { 
+    padding: 20px; 
+    border-radius: 8px; 
+  }
+  .title { 
+    font-size: 20px 
+  }
 }
