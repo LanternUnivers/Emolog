@@ -3,6 +3,8 @@ import io
 import time
 import base64
 from typing import Optional
+import datetime
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,9 +19,9 @@ from google import genai
 from google.genai import types
 
 # -----------------
-# 1. 環境設定と初期化
+# 環境設定と初期化
 # -----------------
-# .env/.env.local をプロジェクトルートから読み込む（backend ディレクトリから起動しても動作するように）
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 env_local = BASE_DIR / ".env.local"
 env_file = BASE_DIR / ".env"
@@ -60,7 +62,7 @@ GEMINI_MODEL = "gemini-2.5-flash"
 app = FastAPI()
 
 # -----------------
-# 2. CORSミドルウェア
+# CORSミドルウェア
 # -----------------
 # フロントエンド(localhost:3000)からのアクセスを許可
 origins = [
@@ -77,7 +79,7 @@ app.add_middleware(
 )
 
 # -----------------
-# 4. コア機能：AI分析と保存エンドポイント
+# 機能：AI分析と保存エンドポイント
 # -----------------
 # 写真ファイルとユーザーIDを受け取り、AI分析してDBに保存
 @app.post("/analyze-and-save")
@@ -135,7 +137,6 @@ async def analyze_and_save(
             "comment": comment_text,
             "image_url": image_url,
             "file_path": file_path,
-            "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
         }).execute()
 
         # 7. 成功レスポンスをフロントエンドに返す
@@ -154,14 +155,14 @@ async def analyze_and_save(
 
 
 # -----------------
-#  ヘルスチェック
+# 機能：ヘルスチェック
 # -----------------
 @app.get("/")
 def read_root():
     return {"status": "ok", "service": "Emolog Backend"}
 
 # -----------------
-# 6. 日記表示用のAPI
+# 機能：日記表示用のAPI
 # -----------------
 
 @app.get("/photos")
@@ -169,6 +170,7 @@ async def get_user_diaries(user_id: str):
     """
     指定されたユーザーIDの全投稿（写真とAI分析結果）をDBから取得し、URLをそのまま使用する。
     """
+    JST = ZoneInfo("Asia/Tokyo")
     try:
         # DBから投稿データを取得
         # 'image_url' には公開 URL が保存されている前提とする
@@ -177,23 +179,24 @@ async def get_user_diaries(user_id: str):
         photos_data = []
 
         for post in res.data:
-            date_obj = post.get("created_at")
+            date_obj_str = post.get("created_at")
             
-            # 💡 修正点: created_atはISO 8601形式 (YYYY-MM-DDTHH:MM:SSZ) なので、
-            # 'T' または ' ' で分割して日付部分 (YYYY-MM-DD) のみを取得
             date_only = ""
-            if date_obj:
-                # 'T' または ' ' で分割し、最初の要素(日付)を取得
-                date_only = date_obj.split("T")[0].split(" ")[0]
-            else:
-                date_only = time.strftime("%Y-%m-%d")
+            if date_obj_str:
+                try:
+                    utc_dt = datetime.datetime.fromisoformat(date_obj_str.replace('Z', '+00:00'))
+                    # JSTに変換
+                    jst_dt = utc_dt.astimezone(JST)
+                    # JSTの日付を YYYY-MM-DD 形式で取得
+                    date_only = jst_dt.strftime("%Y-%m-%d")
+                except Exception:
+                    date_only = date_obj_str.split("T")[0].split(" ")[0]
             
-            # 💡 修正: データベースに保存されている Public URL (image_url) をそのまま使用
-            final_image_url = post["image_url"] 
+            final_image_url = post["image_url"]
 
             photos_data.append({
                 "id": post["id"],
-                "date": date_only, # <-- YYYY-MM-DD 形式
+                "date": date_only,
                 "url": final_image_url,
                 "caption": f"AI分析: {post.get('emotion', 'N/A')} - {post.get('comment', 'N/A')}",
             })
@@ -204,29 +207,63 @@ async def get_user_diaries(user_id: str):
         print(f"Error fetching diaries: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch diary data: {str(e)}")
     
-# jphacks/tk_b_2510/.../backend/main.py
-
+# (Removed older mock `GET /user-stats` endpoint to avoid returning a constant 365 streak.)
+    
 # -----------------
-# 9. ユーザー統計情報取得API (P4タスク)
+# ユーザー統計情報取得API
 # -----------------
 @app.get("/user-stats")
 async def get_user_stats(user_id: str):
     """
-    指定されたユーザーIDの投稿数を取得する。
-    連続投稿日数の計算は複雑なため、一旦フロントエンドのモック値を維持する。
+    指定されたユーザーIDの投稿数と、JST基準での連続投稿日数を計算する。
     """
+    JST = ZoneInfo("Asia/Tokyo")
     try:
-        # Supabaseの'posts'テーブルから、指定された user_id の投稿数をカウント
-        # select('*', count='exact') で件数を取得し、データ本体は取得しない
-        res = supabase.table("posts").select("id", count="exact").eq("user_id", user_id).execute()
+        # 1. 投稿数をカウント
+        count_res = supabase.table("posts").select("id", count="exact").eq("user_id", user_id).execute()
+        post_count = count_res.count
         
-        post_count = res.count # exact count を取得
+        # 2. 連続投稿日数を計算
+        # ユーザーのすべての投稿日時(UTC)を取得
+        posts_res = supabase.table("posts").select("created_at").eq("user_id", user_id).order("created_at", desc=True).execute()
         
-        # 連続投稿日数は、まだサーバーサイドでの正確な計算が複雑なため、
-        # フロントエンドがモック値を使用できるように 365 を返却
+        if not posts_res.data:
+            return {
+                "post_count": 0,
+                "streak_days": 0
+            }
+
+        # 3. UTCタイムスタンプをJSTの日付(date)に変換し、Setに格納
+        unique_jst_dates = set()
+        for post in posts_res.data:
+            try:
+                # UTCのISO文字列をdatetimeオブジェクトに変換
+                utc_dt = datetime.datetime.fromisoformat(post['created_at'].replace('Z', '+00:00'))
+                # JSTの日付 (YYYY-MM-DD) に変換
+                jst_date = utc_dt.astimezone(JST).date()
+                unique_jst_dates.add(jst_date)
+            except Exception:
+                continue # 不正な日付フォーマットは無視
+        
+        # 4. ストリーク計算
+        streak = 0
+        today_jst = datetime.datetime.now(JST).date()
+        
+        # チェック開始日 (今日または昨日)
+        current_date = today_jst
+        if today_jst not in unique_jst_dates:
+            # 今日投稿がない場合、昨日からチェック
+            current_date = today_jst - datetime.timedelta(days=1)
+        
+        # 連続を遡る
+        while current_date in unique_jst_dates:
+            streak += 1
+            current_date -= datetime.timedelta(days=1)
+
+        # 計算した streak を返す
         return {
             "post_count": post_count,
-            "streak_days": 365 # 仮の値 (フロントエンドのモック値に依存)
+            "streak_days": streak 
         }
 
     except Exception as e:
