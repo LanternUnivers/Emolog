@@ -13,10 +13,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
 
   function validate() {
+    if (isPasswordReset) {
+        if (!email) return "メールアドレスを入力してください";
+        const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+        if (!emailRe.test(email)) return "有効なメールアドレスを入力してください";
+        return "";
+    }
     if (!email) return "メールアドレスを入力してください";
     const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
     if (!emailRe.test(email)) return "有効なメールアドレスを入力してください";
@@ -32,6 +40,7 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
     const v = validate();
     if (v) {
       setError(v);
@@ -40,18 +49,32 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      if (isSignup) {
+      if (isPasswordReset) {
+        // SupabaseのサイトURL設定が必須
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (resetError) throw resetError;
+        setSuccessMessage('パスワードリセット用のメールを送信しました。メールボックスを確認してください。');
+
+      } else if (isSignup) {
         // サインアップ
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
         });
         if (signUpError) throw signUpError;
-        // サインアップ後はメール確認などがあるため、そのままログイン画面へ
-        alert('アカウントを作成しました。メール確認後ログインしてください。');
-        setIsSignup(false);
-        setPassword("");
-        setConfirmPassword("");
+        if (data && data.session && data.session.access_token) {
+          // セッションがあれば、サインイン時と同じ処理を実行
+          localStorage.setItem('access_token', data.session.access_token);
+          // /user-homeにリダイレクト
+          router.push('/user-home');
+        } else {
+          setSuccessMessage('アカウントを作成しました。ログインしてください。');
+          setIsSignup(false);
+          setPassword("");
+          setConfirmPassword("");
+        }
         return;
       } else {
         // サインイン
@@ -81,7 +104,9 @@ export default function LoginPage() {
   return (
     <div className={styles.wrapper}>
       <form className={styles.card} onSubmit={handleSubmit}>
-        <h1 className={styles.title}>{isSignup ? "新規アカウント作成" : "ログイン"}</h1>
+        <h1 className={styles.title}>
+            {isPasswordReset ? "パスワードをリセット" : isSignup ? "新規アカウント作成" : "ログイン"}
+        </h1>
 
         <label className={styles.label} htmlFor="email">メールアドレス</label>
         <input
@@ -93,17 +118,21 @@ export default function LoginPage() {
           placeholder="you@example.com"
         />
 
-        <label className={styles.label} htmlFor="password">パスワード</label>
-        <input
-          id="password"
-          type="password"
-          className={styles.input}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="パスワード"
-        />
+        {!isPasswordReset && (
+            <>
+                <label className={styles.label} htmlFor="password">パスワード</label>
+                <input
+                  id="password"
+                  type="password"
+                  className={styles.input}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="パスワード"
+                />
+            </>
+        )}
 
-        {isSignup && (
+        {isSignup && !isPasswordReset && (
           <>
             <label className={styles.label} htmlFor="confirm">パスワード（確認）</label>
             <input
@@ -118,6 +147,7 @@ export default function LoginPage() {
         )}
 
         {error && <div role="alert" className={styles.error}>{error}</div>}
+        {successMessage && <div role="status" className={styles.success}>{successMessage}</div>}
 
         <div className={styles.actions}>
           <button
@@ -127,23 +157,37 @@ export default function LoginPage() {
             aria-disabled={loading}
             aria-busy={loading}
           >
-            {loading ? "送信中..." : isSignup ? "アカウント作成" : "ログイン"}
+            {loading ? "送信中..." : isPasswordReset ? "リセットメールを送信" : isSignup ? "アカウント作成" : "ログイン"}
           </button>
 
-          <button
-            type="button"
-            className={styles.secondary}
-            onClick={() => {
-              setIsSignup((s) => !s);
-              setError("");
-            }}
-          >
-            {isSignup ? "ログイン画面に戻る" : "新規アカウント作成"}
-          </button>
+          {!isPasswordReset && (
+            <button
+                type="button"
+                className={styles.secondary}
+                onClick={() => {
+                  setIsSignup((s) => !s);
+                  setError("");
+                }}
+            >
+                {isSignup ? "ログイン画面に戻る" : "新規アカウント作成"}
+            </button>
+          )}
         </div>
 
         <div className={styles.footer}>
-          <button type="button" className={styles.link} onClick={() => alert('仮のパスワード再発行リンク')}>パスワードを忘れた場合</button>
+          {/* パスワードリセット用のボタン */}
+          <button 
+            type="button" 
+            className={styles.link} 
+            onClick={() => {
+                setIsPasswordReset((prev) => !prev); // トグル
+                setIsSignup(false); // サインアップモードは解除
+                setError("");
+                setSuccessMessage("");
+            }}
+          >
+            {isPasswordReset ? "ログインに戻る" : "パスワードを忘れた場合"}
+          </button>
         </div>
       </form>
     </div>
