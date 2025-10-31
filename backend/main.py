@@ -29,13 +29,12 @@ if env_local.exists():
 elif env_file.exists():
     load_dotenv(env_file)
 else:
-    # どちらもなければ通常の探索にフォールバック
     load_dotenv()
 
 # 環境変数から設定値を取得
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_PUBLIC_KEY = os.getenv("SUPABASE_PUBLIC_KEY")
-SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")  # サーバー側で使用する service_role / secret キー
+SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
