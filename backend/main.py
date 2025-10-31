@@ -18,6 +18,11 @@ from PIL import Image
 from google import genai
 from google.genai import types
 
+import numpy as np
+import moviepy.editor as mpy
+import tempfile
+from fastapi import Query
+
 # -----------------
 # 環境設定と初期化
 # -----------------
@@ -50,6 +55,8 @@ if not SUPABASE_URL or not SUPABASE_SECRET_KEY:
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
 
 BUCKET_NAME = "post_photos"
+TIMELAPSE_BUCKET = "timelapses"
+IMAGE_DURATION = 1.5  # 各画像の表示時間（秒）
 
 # Geminiクライアントの初期化
 if not GEMINI_API_KEY:
@@ -275,3 +282,108 @@ async def get_user_stats(user_id: str):
         print(f"Error fetching user stats: {e}")
         # エラー時は 0 を返す
         raise HTTPException(status_code=500, detail=f"Failed to fetch user stats: {str(e)}")
+    
+# -----------------
+# タイムラプス生成API
+# -----------------
+@app.post("/generate-timelapse")
+async def create_timelapse(
+    user_id: str = Form(...), 
+    year: int = Form(...), 
+    month: int = Form(...)
+):
+    JST = ZoneInfo("Asia/Tokyo")
+    try:
+        # 1. 対象月の投稿を取得 (JST基準)
+        start_date = datetime.datetime(year, month, 1, tzinfo=JST)
+        # 翌月1日を取得
+        if month == 12:
+            end_date = datetime.datetime(year + 1, 1, 1, tzinfo=JST)
+        else:
+            end_date = datetime.datetime(year, month + 1, 1, tzinfo=JST)
+        
+        # Supabaseのtimestamp (UTC) でクエリ
+        utc_start = start_date.astimezone(datetime.timezone.utc)
+        utc_end = end_date.astimezone(datetime.timezone.utc)
+
+        res = supabase.table("posts").select("file_path, user_caption") \
+            .eq("user_id", user_id) \
+            .gte("created_at", utc_start.isoformat()) \
+            .lt("created_at", utc_end.isoformat()) \
+            .order("created_at", desc=False) \
+            .execute()
+        
+        if not res.data:
+            raise HTTPException(status_code=404, detail="対象月の写真がありません。")
+
+        # 2. 画像をStorageからダウンロードし、Numpy配列に
+        image_frames = []
+        for post in res.data:
+            try:
+                # 投稿バケット (post_photos) からファイルパスでDL
+                image_bytes = supabase.storage.from_(BUCKET_NAME).download(post['file_path'])
+                img = Image.open(io.BytesIO(image_bytes)).convert("RGBA") # RGBAに統一
+                image_frames.append(np.array(img))
+            except Exception as e:
+                print(f"Failed to load image: {post['file_path']}, {e}")
+                continue
+        
+        if not image_frames:
+             raise HTTPException(status_code=500, detail="画像の読み込みに失敗しました。")
+
+        # 3. MoviePyで動画を生成 (1280x720 / 16:9)
+        output_size = (1280, 720) # 16:9
+        
+        clips = []
+        for frame in image_frames:
+            # 画像クリップを作成
+            img_clip = mpy.ImageClip(frame, duration=IMAGE_DURATION)
+            
+            # アスペクト比を維持してリサイズ (レターボックス/フィット)
+            img_clip_resized = img_clip.resize(width=output_size[0])
+            if img_clip_resized.h > output_size[1]:
+                img_clip_resized = img_clip.resize(height=output_size[1])
+
+            # 黒背景(1280x720) を作成
+            background = mpy.ColorClip(size=output_size, color=(0,0,0), duration=IMAGE_DURATION)
+            
+            # 背景の中央に画像を配置
+            final_video_clip = mpy.CompositeVideoClip([
+                background,
+                img_clip_resized.set_position(('center', 'center'))
+            ])
+            clips.append(final_video_clip)
+
+        if not clips:
+             raise HTTPException(status_code=500, detail="動画クリップの生成に失敗しました。")
+
+        final_clip = mpy.concatenate_videoclips(clips)
+        final_clip.fps = 10 # エンコードFPS (1秒あたり10フレームで処理)
+
+        # 4. 動画を一時ファイルに書き出し
+        output_filename = f"{user_id}/{year:04d}-{month:02d}.mp4"
+
+        # (BytesIOはmoviepyのffmpeg連携で不安定な場合があるため、一時ファイルが確実)
+        with tempfile.NamedTemporaryFile(delete=True, suffix=".mp4") as tmp_video_file:
+
+            # preset='ultrafast' で速度を優先, threads=2 (サーバー環境)
+            final_clip.write_videofile(tmp_video_file.name, codec='libx264', preset='ultrafast', bitrate="1500k", fps=10, threads=2, logger=None, audio=False)
+
+            tmp_video_file.seek(0)
+            video_bytes = tmp_video_file.read()
+
+        # 5. Storage (timelapsesバケット) にアップロード
+        supabase.storage.from_(TIMELAPSE_BUCKET).upload(
+            file=video_bytes,
+            path=output_filename,
+            file_options={"content-type": "video/mp4", "upsert": "true"}
+        )
+        
+        # 6. 公開URLを返す
+        public_url = supabase.storage.from_(TIMELAPSE_BUCKET).get_public_url(output_filename)
+        
+        return {"url": public_url}
+
+    except Exception as e:
+        print(f"Error generating timelapse: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -6,5 +6,6 @@ python-dotenv
 python-multipart
 python-jose[cryptography]
 passlib[bcrypt]
-Pillow
-
+Pillow==9.5.0
+moviepy==1.0.3
+numpy

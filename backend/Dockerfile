@@ -8,6 +8,10 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED 1
 ENV FASTAPI_ENV "production"
 
+# FFMPEFGとその依存関係をインストール
+RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # 依存関係をインストール
 # requirements.txtをコピー
 COPY requirements.txt .

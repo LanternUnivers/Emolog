@@ -366,3 +366,46 @@
     background: #fff; 
   }
 }
+
+/* * ------------------------------------------------
+ * タイムラプス (リキャプチャ) モーダル用 (ここから追加)
+ * ------------------------------------------------
+ */
+.timelapse-modal-content {
+    background: var(--card, #ffffff);
+    padding: 20px;
+    border-radius: 14px;
+    max-width: 90vw;
+    width: 800px; /* 動画プレーヤー用の幅 */
+    max-height: 90vh;
+    overflow: auto;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(20, 40, 35, 0.18);
+    box-sizing: border-box;
+}
+
+.timelapse-modal-content h3 {
+    margin: 0 0 12px 0;
+    color: #1a202c;
+    font-size: 18px;
+}
+
+.download-button {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 10px 16px;
+    background: var(--accent, #7fbba9);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+.download-button:hover {
+    background: #6aa997; /* 少し暗い色 */
+}
+
+/* モーダルの .close ボタンは既存のスタイルを流用します 
+  (もし .close が .modal-details の内側に定義されていて動かない場合は、
+  .close の定義を .modal-details の外に出してください)
+*/

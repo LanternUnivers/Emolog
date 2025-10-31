@@ -75,7 +75,7 @@ function DiaryPage() {
         return () => { mounted = false; };
     }, []); // 初期ロード時のみ実行
 
-    // ... (loadImage, sleep, generateTimelapse 関数は変更なし) ...
+    // タイムラプス生成ロジック
     async function loadImage(url) {
         return await new Promise((resolve, reject) => {
             const img = new Image();
@@ -92,87 +92,40 @@ function DiaryPage() {
         setTimelapseUrl(null);
         setGenerating(true);
         setProgress(0);
+        setError(null);
         try {
-            const monthPhotos = photos
-                .filter(p => {
-                    const d = new Date(p.date); // p.date は JST の YYYY-MM-DD
-                    return d.getFullYear() === year && d.getMonth() === month;
-                })
-                .slice() 
-                .sort((a, b) => new Date(a.date) - new Date(b.date));
+            // 1. ユーザーIDを取得
+            const { data } = await supabase.auth.getUser();
+            const user = data?.user || null;
+            if (!user) {
+                setError('ユーザー認証が必要です。');
+                setGenerating(false);
+                return;
+            }
+            // 2. フォームデータを作成 (年と月を送信)
+            const formData = new FormData();
+            formData.append('user_id', user.id);
+            formData.append('year', year);
+            formData.append('month', month + 1); // 💡 0-indexed -> 1-indexed に変換
 
-            if (monthPhotos.length === 0) {
-                setError('この月の写真がありません。');
-                setGenerating(false);
-                return;
-            }
-            if (typeof HTMLCanvasElement === 'undefined' || !HTMLCanvasElement.prototype.captureStream) {
-                setError('ブラウザが canvas.captureStream をサポートしていません。別のブラウザでお試しください。');
-                setGenerating(false);
-                return;
-            }
-            const firstImg = await loadImage(monthPhotos[0].url).catch(() => null);
-            const width = firstImg ? Math.max(640, firstImg.naturalWidth) : 1280;
-            const height = firstImg ? Math.max(480, firstImg.naturalHeight) : 720;
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            const fps = 2; 
-            const frameDuration = 1000 / fps; 
-            const stream = canvas.captureStream(fps);
-            const mime = 'video/webm; codecs=vp9';
-            let recorder;
-            try {
-                recorder = new MediaRecorder(stream, { mimeType: mime });
-            } catch (e) {
-                recorder = new MediaRecorder(stream);
-            }
-            const chunks = [];
-            recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size) chunks.push(ev.data); };
-            const stopPromise = new Promise((resolve) => {
-                recorder.onstop = () => resolve();
+            // 3. バックエンドAPIを呼び出し
+            const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const API_ENDPOINT = `${API_BASE_URL}/generate-timelapse`;
+
+            const res = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                body: formData,
             });
-            recorder.start();
-            for (let i = 0; i < monthPhotos.length; i++) {
-                const p = monthPhotos[i];
-                try {
-                    const img = await loadImage(p.url);
-                    ctx.fillStyle = '#000';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    const arImg = img.naturalWidth / img.naturalHeight;
-                    const arCanvas = canvas.width / canvas.height;
-                    let dw, dh, dx, dy;
-                    if (arImg > arCanvas) {
-                        dh = canvas.height;
-                        dw = dh * arImg;
-                        dx = (canvas.width - dw) / 2;
-                        dy = 0;
-                    } else {
-                        dw = canvas.width;
-                        dh = dw / arImg;
-                        dx = 0;
-                        dy = (canvas.height - dh) / 2;
-                    }
-                    ctx.drawImage(img, dx, dy, dw, dh);
-                } catch (err) {
-                    console.warn('load image failed for timelapse', p.url, err);
-                    ctx.fillStyle = '#444';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
-                await sleep(frameDuration);
-                setProgress((i + 1) / monthPhotos.length);
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                // 404 (写真なし) の場合もエラーとして表示
+                throw new Error(result.detail || 'タイムラプスの生成に失敗しました。');
             }
-            recorder.stop();
-            await stopPromise;
-            const blob = new Blob(chunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            setTimelapseUrl(url);
-            await sleep(50);
-            if (videoPreviewRef.current) {
-                videoPreviewRef.current.src = url;
-                videoPreviewRef.current.controls = true;
-            }
+
+            // 4. 返ってきたURLをセット (モーダルが開く)
+            setTimelapseUrl(result.url);
         } catch (err) {
             console.error(err);
             setError(err.message || 'タイムラプス作成中にエラーが発生しました。');
@@ -181,7 +134,6 @@ function DiaryPage() {
             setProgress(0);
         }
     }
-
 
     const grouped = useMemo(() => {
         const map = {};
@@ -269,20 +221,10 @@ function DiaryPage() {
             )}
 
             {generating && (
-                <div style={{ padding: 8 }}>
-                    作成中: {(progress * 100).toFixed(0)}%
+                <div style={{ padding: 8, textAlign: 'center', color: 'var(--accent)' }}>
+                    リキャプチャ動画を生成中です... (最大1分ほどかかる場合があります)
                 </div>
             )}
-            {timelapseUrl && (
-                <div style={{ padding: 8 }}>
-                    <div>タイムラプスをプレビュー・ダウンロードできます:</div>
-                    <video ref={videoPreviewRef} src={timelapseUrl} style={{ maxWidth: '100%', display: 'block', marginTop: 8 }} controls />
-                    <a href={timelapseUrl} download={`timelapse-${year}-${String(month + 1).padStart(2, '0')}.webm`} style={{ display: 'inline-block', marginTop: 8 }}>
-                        ダウンロード (.webm)
-                    </a>
-                </div>
-            )}
-
 
             <div className={styles['calendar-wrapper']}>
                 <table className={styles.calendar}>
@@ -383,6 +325,31 @@ function DiaryPage() {
                             )}                            
                         </div>
 
+                    </div>
+                </div>
+            )}
+
+            {timelapseUrl && (
+                <div className={styles.modal} onClick={() => setTimelapseUrl(null)}>
+                    <div className={styles['timelapse-modal-content']} onClick={(e) => e.stopPropagation()}>
+                        <button className={styles.close} onClick={() => setTimelapseUrl(null)}>✕</button>
+                        
+                        <h3>{year}年 {month + 1}月 のリキャプチャ</h3>
+                        
+                        <video                            
+                            src={timelapseUrl} 
+                            style={{ width: '100%', borderRadius: '8px', background: '#000' }} 
+                            controls 
+                            autoPlay 
+                        />
+                        
+                        <a 
+                            href={timelapseUrl} 
+                            download={`timelapse-${year}-${String(month + 1).padStart(2, '0')}.mp4`} 
+                            className={styles['download-button']}
+                        >
+                            ダウンロード (.mp4)
+                        </a>
                     </div>
                 </div>
             )}

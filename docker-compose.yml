@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # FastAPIバックエンドサービス
   api:
@@ -17,5 +15,6 @@ services:
     # ホットリロードのためのボリュームマウント（開発中の変更を即時反映）
     volumes:
       - ./backend:/app
+      - /app/__pycache__
     # 開発中はホットリロードを有効にしたコマンドで上書き（本番ではDockerfileのCMDが使われる）
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
