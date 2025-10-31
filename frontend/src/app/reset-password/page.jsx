@@ -10,9 +10,10 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   
-  // 💡 このページは「パスワード回復」セッション中かチェック
+  // このページは「パスワード回復」セッション中かチェック
   const [isRecoverySession, setIsRecoverySession] = useState(false);
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function ResetPasswordPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setSuccessMessage("");
 
     if (password.length < 6) {
       setError("パスワードは6文字以上で入力してください");
@@ -46,7 +48,7 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     try {
-      // 💡 ユーザーのパスワードを更新
+      // ユーザーのパスワードを更新
       const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
@@ -102,12 +104,13 @@ export default function ResetPasswordPage() {
         />
 
         {error && <div role="alert" className={styles.error}>{error}</div>}
+        {successMessage && <div role="status" className={styles.success}>{successMessage}</div>}
 
         <div className={styles.actions}>
           <button
             className={styles.button}
             type="submit"
-            disabled={loading}
+            disabled={loading || !!successMessage}
             aria-busy={loading}
           >
             {loading ? "更新中..." : "パスワードを更新"}

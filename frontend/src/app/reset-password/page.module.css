@@ -121,3 +121,12 @@
   .card{ padding: 20px; border-radius: 8px; }
   .title{ font-size: 20px }
 }
+
+.success {
+  margin-top: 10px;
+  color: #22c55e; /* 緑色 */
+  font-size: 13px;
+  padding: 8px 12px;
+  background-color: #f0fdf4; /* 薄い緑色の背景 */
+  border-radius: 8px;
+}
