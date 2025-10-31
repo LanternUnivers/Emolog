@@ -1,12 +1,43 @@
-# 🌳 Emolog (エモログ)
+# Emolog (エモログ)
+[![Tech: Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Tech: FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Tech: Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white)](https://supabase.io/)
+[![Tech: Gemini](https://img.shields.io/badge/Gemini-8E8FFA?style=flat&logo=googlebard&logoColor=white)](https://ai.google.dev/)
 
-[![IMAGE ALT TEXT HERE](https://jphacks.com/wp-content/uploads/2025/05/JPHACKS2025_ogp.jpg)](https://www.youtube.com/watch?v=lA9EluZugD8)
+
+![Homepage](EmologHomepage.png)
+
+
+```markdown
+アーキテクチャ
+
+このプロジェクトは、VercelにデプロイされたNext.jsフロントエンドと、Dockerコンテナで動作するFastAPIバックエンドで構成されています。Supabaseが認証、DB、ストレージのすべてを担います。
+
+┌───────────────┐     ┌───────────────────┐     ┌──────────────┐
+│  Browser      │────▶│  Next.js (Vercel) │────▶│  Supabase    │
+│ (React)       │     │ (Frontend)        │     │ (Auth, DB)   │
+└───────────────┘     └─────────┬─────────┘     └───────▲──────┘
+                              │                       │
+                              │ (POST /analyze)       │ (Save Data)
+                              ▼                       │
+                  ┌─────────────┴───────────┐         │
+                  │  FastAPI (Docker)       │─────────┘
+                  │ (Backend API)           │
+                  └─────────────┬───────────┘
+                                │
+                                ▼
+                      ┌───────────────────┐
+                      │  Gemini API       │
+                      │ (Image Analysis)  │
+                      └───────────────────┘
+```
+
 
 ## 製品概要
-### 背景(製品開発のきっかけ、課題等）
+### 製品開発のきっかけ
 従来のジャーナリングやセルフケアアプリは、記録のモチベーション維持が難しく、特に感情を文字で表現することが苦手なユーザーにとっては客観的なフィードバックが不足しているという課題がありました。本製品は、この課題をAIによる分析とゲーミフィケーション要素で解決することを目指しています。
 
-### 製品説明（具体的な製品の説明）
+### 製品説明
 Emologは、**AIによる感情分析**と**AIによるコメント感情分析**の要素を組み合わせた、新しいセルフケア・ジャーナリングアプリです。
 ユーザーが写真やコメントを投稿すると、FastAPIバックエンドがGoogle Gemini APIを呼び出し、画像の内容と感情を分析します。分析結果に基づき、感情タグとコメントが生成され、記録が「世界を育てる」というフィードバックを通じて、ユーザーにポジティブなセルフケア体験を提供します。
 
@@ -22,10 +53,8 @@ Emologは、**AIによる感情分析**と**AIによるコメント感情分析*
 * **記録の習慣化:** 連続日数やアバター育成要素を通じて、ジャーナリングの継続を強力にサポートします。
 * **感情の客観視:** AIによる客観的な感情フィードバックにより、自己の感情状態を冷静に把握する手助けをします。
 
-### 今後の展望
-* **感情の傾向分析レポート:** 過去の投稿データを基にした詳細な感情分析レポートを生成し、ユーザーのセルフケアを深化させます。
 
-### 注力したこと（こだわり等）
+### こだわり
 * **FastAPIによる高速なAI処理フロー:** 画像のアップロードからAI分析、DB保存までの処理を高速なFastAPIで一貫させ、ユーザーへの分析結果の**即時フィードバック（モーダル）**を実現しました。
 * **DB環境の採用:** Supabaseをインフラの中心に据えることで、認証、データベース、ストレージを迅速かつ堅牢に構築しました。
 * **Geminiの採用:** 初めてのAI実装を行いました。
@@ -43,14 +72,54 @@ Emologは、**AIによる感情分析**と**AIによるコメント感情分析*
 #### デバイス
 * Webブラウザ (モバイル/デスクトップ)
 
-### 独自技術
-#### ハッカソンで開発した独自機能・技術
+### 本プロジェクトのコア機能
 * **Gemini-FastAPI連携による感情分析API:** 画像の受け取り、AI分析、Supabaseへの保存（DB/Storage）を一連の処理として実装したバックエンドAPI (`/analyze-and-save`)。
 * **ブラウザベースのタイムラプス生成:** 月末に、その月の投稿画像をブラウザのCanvas機能を利用して動画として結合・生成する機能。
-* **特に力を入れた部分をファイルリンク、またはcommit_idを記載してください。**
-    * **AI感情分析フロー:** `backend/main.py`
-    * **連続日数計算ロジック:** `frontend/src/app/user-home/page.js`
-    * **タイムラプス生成ロジック:** `frontend/src/app/diary/page.jsx`
+
+
+## ローカルでの実行方法
+
+このプロジェクトは、Next.js（フロントエンド）とFastAPI（バックエンド）で構成されています。
+
+### 必要なもの
+* Node.js (v18.18.0 以上)
+* Docker と Docker Compose
+* Supabase アカウント (DB, Auth, Storage)
+* Google Gemini API キー
+
+### 1. 環境変数の設定
+
+プロジェクトを動作させるには、2つの `.env.local` ファイルが必要です。
+
+**(A) バックエンド用 (`/` ルートディレクトリ)**
+
+リポジトリのルートに `.env.local` ファイルを作成します (`.env.sample` をコピーしてください)。
+`backend/main.py` が参照するSupabaseの**サービスキー**とGeminiキーを設定します。
+
+```bash
+# /.env.local
+SUPABASE_URL="[https://your-project-ref.supabase.co](https://your-project-ref.supabase.co)"
+SUPABASE_SERVICE_ROLE_KEY="your-supabase-service-role-key"
+GEMINI_API_KEY="your-gemini-api-key"
+# /frontend/.env.local
+NEXT_PUBLIC_SUPABASE_URL="[https://your-project-ref.supabase.co](https://your-project-ref.supabase.co)"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
+
+# Dockerで起動するバックエンドAPIのURL
+NEXT_PUBLIC_API_URL="http://localhost:8000"
+
+# ルートディレクトリで実行
+docker-compose up -d --build
+
+# frontendディレクトリに移動
+cd frontend
+
+# 依存関係をインストール
+npm install
+
+# 開発サーバーを起動
+npm run dev
+```
 
 ## デプロイURL
 https://emolog-psi.vercel.app/

@@ -221,3 +221,136 @@ body { margin: 0; font-family: system-ui, sans-serif; }
   .thumb { width:34px; height:34px; border-radius:6px; }
   .more-count { font-size:11px; padding:3px 6px; bottom:6px; right:6px; }
 }
+
+.timelapse-btn {
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: #f5f5f5;
+    color: #111;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 120ms ease, box-shadow 120ms ease, opacity 160ms ease;
+}
+.timelapse-btn:active { transform: scale(0.98); }
+
+/* 月末のときに光って動くスタイル */
+.glow {
+    background: linear-gradient(90deg, #ff8a00 0%, #e52e71 50%, #8a2be2 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 8px 30px rgba(229,46,113,0.28), 0 0 0 rgba(232, 88, 123, 0.35);
+    animation: glowPulse 2.2s infinite ease-in-out, floatUp 3s infinite ease-in-out;
+}
+
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 6px 24px rgba(229,46,113,0.18), 0 0 0 rgba(229,46,113,0.10);
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        box-shadow: 0 18px 40px rgba(229,46,113,0.30), 0 0 24px rgba(229,46,113,0.12);
+        transform: translateY(-3px) scale(1.02);
+    }
+    100% {
+        box-shadow: 0 6px 24px rgba(229,46,113,0.18), 0 0 0 rgba(229,46,113,0.10);
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+    100% { transform: translateY(0); }
+}
+
+/* カレンダー全体を丸く・余白を与える */
+.calendar {
+    border-collapse: separate;
+    border-spacing: 10px;
+    width: 100%;
+}
+.calendar th {
+    padding: 8px 6px;
+    font-weight: 600;
+    color: #555;
+}
+
+/* 日セルを丸く、余白と背景を追加 */
+.day-cell {
+    position: relative;
+    overflow: visible;
+    background: rgba(255,255,255,0.92);
+    border-radius: 14px;
+    padding: 10px;
+    transition: box-shadow 180ms ease, transform 180ms ease, background 160ms ease;
+    min-width: 86px;
+    height: 86px;
+    vertical-align: top;
+}
+/* ホバーで浮き上がる感じ */
+.day-cell:hover {
+    box-shadow: 0 14px 36px rgba(12,12,20,0.08);
+    transform: translateY(-4px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,248,250,0.98));
+}
+
+.empty {
+    background: transparent;
+}
+
+.day-number {
+    display: inline-block;
+    padding: 6px 8px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #333;
+    background: rgba(0,0,0,0.04);
+    margin-bottom: 6px;
+}
+
+.thumbs {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 180ms ease;
+    display: inline-block;
+    vertical-align: middle;
+}
+.thumb + .thumb {
+    margin-left: 6px;
+}
+
+/* 日セルにカーソルが乗ったらそのセル内のサムネイルを少し拡大 */
+.day-cell:hover .thumb {
+    transform: scale(1.12);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.16);
+    z-index: 2;
+    position: relative;
+}
+
+/* 個別のサムネイルに直接ホバーしたときはさらに拡大 */
+.thumb:hover {
+    transform: scale(1.26);
+    box-shadow: 0 18px 30px rgba(0,0,0,0.22);
+    z-index: 3;
+}
+
+/* カレンダーの角をより丸く見せるためにテーブル自体にも軽い角を付与 */
+.calendar-wrapper {
+    border-radius: 16px;
+    padding: 8px;
+    background: transparent;
+}

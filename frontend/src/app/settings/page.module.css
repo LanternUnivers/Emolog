@@ -1,6 +1,4 @@
-/* page.css */
-
-/* settings page base (scoped) */
+/* settings page base */
 .settings-page {
     font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
     margin: 0;
@@ -249,4 +247,30 @@
     border: 1px solid var(--border-color, #dbdbdb);
     border-radius: 4px;
     background-color: #f9f9f9;
+}
+
+/* 「← プロフィールに戻る」ボタン用のマージン */
+.settings-container .edit-button.mb-20 {
+    margin-bottom: 20px;
+}
+
+/* 編集フォーム内のプロフィール写真エリア */
+.edit-form .form-group-flex {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+/* 編集フォーム内のプレビュー画像 */
+.edit-form .form-profile-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* 汎用マージンヘルパー（キャンセルボタン用） */
+.settings-container .ml-10 {
+    margin-left: 10px;
 }

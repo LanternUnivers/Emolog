@@ -1,8 +1,8 @@
 'use client';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import './page.css';
+import styles from './page.module.css';
 import AuthGuard from '../../lib/AuthGuard';
-import { supabase } from '../../lib/supabaseClient'; // 💡 supabaseをインポートに追加
+import { supabase } from '../../lib/supabaseClient';
 
 function formatYMD(date) {
     const y = date.getFullYear();
@@ -37,7 +37,7 @@ function DiaryPage() {
     const isMonthEnd = isCurrentMonthDisplayed && today.getDate() === lastDayOfDisplayedMonth;
 
     // add a class name variable for the button
-    const timelapseBtnClass = isMonthEnd ? 'timelapse-btn glow' : 'timelapse-btn';
+    const timelapseBtnClass = isMonthEnd ? `${styles['timelapse-btn']} ${styles.glow}` : styles['timelapse-btn'];
 
     // 💡 ユーザーセッションと写真をsupabaseから取得 (useEffect)
     useEffect(() => {
@@ -295,144 +295,8 @@ function DiaryPage() {
     };
 
     return (
-        <div className="diary-root">
-            {/* inject styles here so page.css を触らずにアニメーションを追加 */}
-            <style>{`
-                .timelapse-btn {
-                    padding: 10px 16px;
-                    border-radius: 12px;
-                    border: 1px solid rgba(0,0,0,0.08);
-                    background: #f5f5f5;
-                    color: #111;
-                    font-size: 15px;
-                    font-weight: 600;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    transition: transform 120ms ease, box-shadow 120ms ease, opacity 160ms ease;
-                }
-                .timelapse-btn:active { transform: scale(0.98); }
-
-                /* 月末のときに光って動くスタイル */
-                .glow {
-                    background: linear-gradient(90deg, #ff8a00 0%, #e52e71 50%, #8a2be2 100%);
-                    color: #fff;
-                    border: none;
-                    box-shadow: 0 8px 30px rgba(229,46,113,0.28), 0 0 0 rgba(232, 88, 123, 0.35);
-                    animation: glowPulse 2.2s infinite ease-in-out, floatUp 3s infinite ease-in-out;
-                }
-
-                @keyframes glowPulse {
-                    0% {
-                        box-shadow: 0 6px 24px rgba(229,46,113,0.18), 0 0 0 rgba(229,46,113,0.10);
-                        transform: translateY(0) scale(1);
-                    }
-                    50% {
-                        box-shadow: 0 18px 40px rgba(229,46,113,0.30), 0 0 24px rgba(229,46,113,0.12);
-                        transform: translateY(-3px) scale(1.02);
-                    }
-                    100% {
-                        box-shadow: 0 6px 24px rgba(229,46,113,0.18), 0 0 0 rgba(229,46,113,0.10);
-                        transform: translateY(0) scale(1);
-                    }
-                }
-
-                @keyframes floatUp {
-                    0% { transform: translateY(0); }
-                    50% { transform: translateY(-4px); }
-                    100% { transform: translateY(0); }
-                }
-
-                /* カレンダー全体を丸く・余白を与える */
-                .calendar {
-                    border-collapse: separate;
-                    border-spacing: 10px;
-                    width: 100%;
-                }
-                .calendar th {
-                    padding: 8px 6px;
-                    font-weight: 600;
-                    color: #555;
-                }
-
-                /* 日セルを丸く、余白と背景を追加 */
-                .day-cell {
-                    position: relative;
-                    overflow: visible;
-                    background: rgba(255,255,255,0.92);
-                    border-radius: 14px;
-                    padding: 10px;
-                    transition: box-shadow 180ms ease, transform 180ms ease, background 160ms ease;
-                    min-width: 86px;
-                    height: 86px;
-                    vertical-align: top;
-                }
-                /* ホバーで浮き上がる感じ */
-                .day-cell:hover {
-                    box-shadow: 0 14px 36px rgba(12,12,20,0.08);
-                    transform: translateY(-4px);
-                    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,248,250,0.98));
-                }
-
-                .empty {
-                    background: transparent;
-                }
-
-                .day-number {
-                    display: inline-block;
-                    padding: 6px 8px;
-                    border-radius: 10px;
-                    font-size: 13px;
-                    color: #333;
-                    background: rgba(0,0,0,0.04);
-                    margin-bottom: 6px;
-                }
-
-                .thumbs {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                    margin-top: 6px;
-                }
-
-                .thumb {
-                    width: 48px;
-                    height: 48px;
-                    object-fit: cover;
-                    border-radius: 10px;
-                    transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 180ms ease;
-                    display: inline-block;
-                    vertical-align: middle;
-                }
-                .thumb + .thumb {
-                    margin-left: 6px;
-                }
-
-                /* 日セルにカーソルが乗ったらそのセル内のサムネイルを少し拡大 */
-                .day-cell:hover .thumb {
-                    transform: scale(1.12);
-                    box-shadow: 0 10px 20px rgba(0,0,0,0.16);
-                    z-index: 2;
-                    position: relative;
-                }
-
-                /* 個別のサムネイルに直接ホバーしたときはさらに拡大 */
-                .thumb:hover {
-                    transform: scale(1.26);
-                    box-shadow: 0 18px 30px rgba(0,0,0,0.22);
-                    z-index: 3;
-                }
-
-                /* カレンダーの角をより丸く見せるためにテーブル自体にも軽い角を付与 */
-                .calendar-wrapper {
-                    border-radius: 16px;
-                    padding: 8px;
-                    background: transparent;
-                }
-            `}</style>
-
-            <header className="diary-header" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className={styles['diary-root']}>
+            <header className={styles['diary-header']} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <button onClick={prevMonth} aria-label="前の月">◀</button>
                 <h2 style={{ margin: 0 }}>{year}年 {month + 1}月</h2>
                 <button onClick={nextMonth} aria-label="次の月">▶</button>
@@ -455,7 +319,7 @@ function DiaryPage() {
             </header>
 
             {error && (
-                <div className="api-error" style={{ color: 'crimson', padding: 8 }}>
+                <div className={styles['api-error'] || 'api-error'} style={{ color: 'crimson', padding: 8 }}>
                     サーバーから写真を取得できませんでした: {error}
                 </div>
             )}
@@ -476,7 +340,7 @@ function DiaryPage() {
                 </div>
             )}
 
-            <table className="calendar">
+            <table className={styles.calendar}>
                 <thead>
                     <tr>
                         <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
@@ -490,21 +354,21 @@ function DiaryPage() {
                                 const ymd = formatYMD(day);
                                 const dayPhotos = grouped[ymd] || [];
                                 return (
-                                    <td key={j} className="day-cell">
-                                        <div className="day-number">{day.getDate()}</div>
-                                        <div className="thumbs">
+                                    <td key={j} className={styles['day-cell']}>
+                                        <div className={styles['day-number']}>{day.getDate()}</div>
+                                        <div className={styles.thumbs}>
                                             {dayPhotos.slice(0, 3).map(p => (
                                                 <img
                                                     key={p.id}
                                                     src={p.url}
                                                     alt={p.caption || ''}
-                                                    className="thumb"
+                                                    className={styles.thumb}
                                                     onClick={() => setSelected(p)}
                                                 />
                                             ))}
                                         </div>
                                         {dayPhotos.length > 3 && (
-                                            <div className="more-count">+{dayPhotos.length - 3}</div>
+                                            <div className={styles['more-count']}>+{dayPhotos.length - 3}</div>
                                         )}
                                     </td>
                                 );
@@ -515,9 +379,9 @@ function DiaryPage() {
             </table>
 
             {selected && (
-                <div className="modal" onClick={() => setSelected(null)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <button className="close" onClick={() => setSelected(null)}>✕</button>
+                <div className={styles.modal} onClick={() => setSelected(null)}>
+                    <div className={styles['modal-content']} onClick={(e) => e.stopPropagation()}>
+                        <button className={styles.close} onClick={() => setSelected(null)}>✕</button>
                         {/* 画像はクリックで新しいタブで開く */}
                         <img
                             src={selected.url}
