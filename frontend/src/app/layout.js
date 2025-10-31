@@ -25,10 +25,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased app-root`}
       >
         <Header />
-        {children} {/* 各ページのコンテンツがここに表示されます */}
+        {/* main を追加してフレックスでフッターを下に押しやる */}
+        <main className="app-main">
+          {children} {/* 各ページのコンテンツがここに表示されます */}
+        </main>
         {/* ------------------------------------------------------ */}
         <Footer /> {/* 全てのページに共通のフッターを追加します */}
         {/* ------------------------------------------------------ */}

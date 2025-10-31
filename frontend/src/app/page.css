@@ -1,313 +1,98 @@
-/* ページ専用スタイル（復元: サイド余白に背景画像を表示する構成） */
-
-:root {
-  --content-max-width: 1100px;
-  --header-height: 96px;
-  --footer-height: 72px;
-}
-
-/* body は白背景に */
-body {
+.emolog-hero-container {
+  height: 100%;
+  width: 100%;
   background-image: url('/images/emolog-bg.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: fixed; /* 固定したくなければ削除 */
-  background-color: #ffffff;    /* 画像読み込み失敗時のフォールバック */
-  color: #111;
-}
-
-/* コンテナは白で上に表示 */
-.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: relative;
-  z-index: 1;               /* 側面の背景より前面に出す */
-  background: transparent;  /* 背景を透明に変更 */
-  border-radius: 6px;
-  width: 100%;
-  max-width: var(--content-max-width);
-  margin: 0 auto;
-  box-sizing: border-box;
-  padding: 20px;
-  padding-top: calc(var(--header-height) + 12px);
-  padding-bottom: 28px;
-}
-
-/* 左右の余白領域に画像を表示（ヘッダー〜フッター間のみ） */
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  top: var(--header-height);
-  bottom: var(--footer-height);
-  width: clamp(0px, calc((100% - var(--content-max-width)) / 2), 50%);
-  background-image: url('/images/emolog-bg.jpg');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover; /* 余白領域に合わせて自動調整 */
-  pointer-events: none;
   z-index: 0;
-  opacity: 1;
 }
 
-/* 左側 */
-body::before {
+.emolog-hero-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
   left: 0;
-}
-
-/* 右側（左右反転して見栄えを揃えるなら transform を付ける） */
-body::after {
   right: 0;
-  /* もし左右で反転表示したければコメント解除:
-     transform: scaleX(-1);
-  */
-}
-
-/* 小さい画面では余白がなくなるので疑似要素を消す（読みやすさのため） */
-@media (max-width: calc(var(--content-max-width) + 40px)) {
-  body::before,
-  body::after {
-    display: none;
-  }
-}
-
-/* ヘッダー（上部ピンク帯・通常フロー） */
-.app-header {
-  position: static;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #e7aee6;
-  box-sizing: border-box;
-  padding: 18px;
-  border-bottom: 1px solid #222;
-}
-
-/* タイトルの箱（中央・枠線） */
-.title.cute-title {
-  font-family: "Georgia", "Hiragino Mincho ProN", serif;
-  font-size: 72px;
-  line-height: 1;
-  font-weight: 300;
-  color: #1a1a1a;
-  padding: 6px 28px;
-  border: 2px solid #1a1a1a;
-  border-radius: 4px;
-  display: inline-block;
-  box-shadow: none;
-  margin: 0;
-}
-
-/* タイトル（上書き調整） */
-.title.cute-title {
-  font-size: 3rem;
-  font-weight: 800;
-  font-family: "Helvetica Neue", "Noto Sans JP", "Yu Gothic", "Meiryo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color: #ff4da6;
-  background: transparent;
-  border: none;
-  padding: 8px 28px;
-  margin: 0;
-  display: inline-block;
-}
-
-/* キャッチコピー系 */
-.tagline-small {
-  font-size: 1.25rem;
-  color: #000;
-  margin: 0;
-  padding-left: 0;
-}
-.tagline-small {
-  font-size: 1.25rem;
-  color: #000;
-  margin: 0;
-  padding-left: 0;
-}
-
-/* Headline backgrounds: keep a white block on the left but fade to transparent on the right */
-.tagline {
-  font-size: 36px;
-  margin: 18px 0 4px 0;
-  color: #111;
-  text-align: left;
-  display: inline-block;
-  padding: 10px 18px 10px 18px;
-  background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 58%, rgba(255,255,255,0) 100%);
-  /* keep a small box shadow to separate text from background image */
-  box-shadow: 0 6px 18px rgba(12,12,20,0.06);
-}
-.tagline-large {
-  font-size: 56px;
-  margin: 18px 0 24px 0;
-  padding: 14px 30px 14px 30px; /* widen for pill feel */
-  text-align: left;
-  color: #111;
-  /* softer font styling */
-  font-family: "Inter", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-weight: 400;
-  display: inline-block;
-  background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 58%, rgba(255,255,255,0) 100%);
-  box-shadow: 0 8px 24px rgba(12,12,20,0.06);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  letter-spacing: 0.2px;
-  line-height: 1.02; /* tight but readable for large headline */
-  border-radius: 999px; /* pill shape */
-  border: 1px solid rgba(0,0,0,0.06);
-  background-clip: padding-box;
-  backdrop-filter: blur(4px); /* subtle softening */
-  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
-}
-
-/* offset second line to align as stacked pill */
-.tagline-large.tagline-offset {
-  display: inline-block;
-  margin-top: 6px;
-  transform-origin: left center;
-}
-
-.tagline-large:hover,
-.tagline-large:focus {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 40px rgba(12,12,20,0.08);
-}
-
-/* Description: style similar to tagline-large but subtler and readable */
-.description {
-  max-width: 860px;
-  font-size: 18px;
-  line-height: 1.85;
-  color: #222;
-  /* softer font settings to match headline */
-  font-family: "Noto Sans JP", "Inter", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-weight: 300;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  letter-spacing: 0.12px;
-  background: linear-gradient(to right, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.96) 80%, rgba(255,255,255,0) 100%);
-  display: block;
-  padding: 16px 20px;
-  margin-top: 18px;
-  border-radius: 6px;
-  box-shadow: 0 6px 18px rgba(12,12,20,0.05);
-}
-/* レイアウト */
-.content-wrapper {
-  display: flex;
-  gap: 40px;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 170px;
-}
-
-/* 左カラム */
-.main-content {
-  flex: 1 1 65%;
-  text-align: left;
-  padding-left: 0px;
-}
-
-/* 右カラム / ナビ */
-.navigation {
-  flex: 0 0 24%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  padding-top: 36px;
-  gap: 12px;
-}
-
-/* Login ボタン */
-.login-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #ff4da6;               /* 背景を透かして馴染ませる */
-  color: #1f2937;                        /* 暗めのテキスト色で落ち着かせる */
-  padding: 10px 22px;                    /* 小さめにして浮いた印象を軽減 */
-  font-size: 35px;                       /* 大きすぎないサイズ */
-  font-weight: 600;
-  border: 1.5px solid rgba(0,0,0,0.08);  /* 薄いボーダーで明確に */
-  border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(12,12,20,0.04);
-  text-decoration: none;
-  transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, border-color .16s ease, color .16s ease;
-}
-
-/* ホバーでアクセント（控えめ） */
-.login-button:hover,
-.login-button:focus {
-  background: rgba(255,77,166,0.06);          /* ヘッダーのピンクと馴染む薄い色 */
-  border-color: rgba(255,77,166,0.35);
-  color: #ff4da6;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(12,12,20,0.08);
-}
-
-/* footer系（ページ内フロー用） */
-.site-footer {
-  position: static;
-  width: 100%;
-  height: auto;
-  background: #ffffff;
-  border-top: 1px solid rgba(0,0,0,0.06);
-  box-sizing: border-box;
-  padding: 18px 0;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 100%);
   z-index: 1;
 }
 
-.footer-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  background: transparent;
+.emolog-hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  padding: 20px;
+  color: #ffffff;
+  height: auto;
 }
 
-.footer-description {
-  margin: 0;
-  color: #333;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  max-width: 880px;
-  margin-left: 12px;
+.tagline-large {
+  font-size: 56px;
+  font-family: "Inter", "Noto Sans JP", system-ui, sans-serif;
+  font-weight: 400;
+  color: #fff;
+  background: none;
+  box-shadow: none;
+  border: none;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+  margin: 18px 0 0 0;
+  padding: 0;
 }
 
-/* 浮動説明（もし使うなら） */
-.floating-desc {
-  position: fixed;
-  left: 16px;
-  bottom: calc(var(--footer-height, 72px) + 16px);
-  z-index: 9000;
-  max-width: 420px;
-  background: rgba(255,255,255,0.95);
-  color: #333;
-  padding: 12px 14px;
+.tagline-large.tagline-offset {
+  margin-top: 6px;
+  margin-bottom: 24px;
+}
+
+.description {
+  font-size: 18px;
+  line-height: 1.85;
+  color: #f0f0f0;
+  font-family: "Noto Sans JP", "Inter", system-ui;
+  font-weight: 300;
+  background: none;
+  box-shadow: none;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  max-width: 650px;
+  margin: 24px auto 0 auto;
+}
+
+.navigation {
+  flex: none;
+  width: 100%;
+  padding-top: 36px;
+}
+
+.login-button {
+  background-color: transparent;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 12px 28px;
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(12,12,20,0.06);
-  font-size: 0.95rem;
-  line-height: 1.5;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, color .16s ease;
 }
 
-/* モバイル調整 */
+.login-button:hover,
+.login-button:focus {
+  background-color: #ffffff;
+  color: #111;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
 @media (max-width: 900px) {
-  .title.cute-title { font-size: 48px; padding: 6px 16px; }
-  .main-content { padding-left: 20px; }
-  .tagline { font-size: 32px; }
   .tagline-large { font-size: 32px; }
-  .navigation { align-items: center; flex-basis: auto; width: 100%; padding-top: 16px; }
-  .login-button { font-size: 20px; padding: 10px 24px; }
-  .content-wrapper { flex-direction: column; gap: 18px; }
-  .container { padding-top: calc(var(--header-height) + 18px); }
-}
-
-/* サイド背景を無効化（擬似要素を非表示にする） */
-body::before,
-body::after {
-  display: none !important;
-  background: none !important;
-  pointer-events: none !important;
+  .description { font-size: 16px; }
+  .login-button { font-size: 16px; padding: 10px 24px; }
 }

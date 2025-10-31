@@ -1,46 +1,27 @@
 import React from 'react';
-import './page.css'; // スタイルを別ファイルから読み込みます
+import './page.css';
 
-function App() {
+export default function HomePage() {
   return (
-    <div className="container">
-      {/*
-      <header className="app-header">
-        <h1 className="title cute-title">Emolog</h1>
-      </header>
-      */}
-      
-      {/* ヘッダーとフッターの間だけ背景を表示するラッパー */}
-      <div className="page-body-bg">    {/* ヘッダーとフッターの間だけ背景を表示するラッパー */}
-        <div className="content-wrapper">
+    <div className="emolog-hero-container">
+
+      <main className="emolog-hero-content">
+        <h1 className="tagline-large">〜あなたの感情が〜</h1>
+        <h1 className="tagline-large tagline-offset">～世界を笑顔に変えていく〜</h1>
         
-        {/* 左側のメインコンテンツ */}
-        <main className="main-content">
-          <p className="tagline-large">
-            〜あなたの感情が
-          </p>
-          <p className="tagline-large tagline-offset">
-            世界を笑顔に変えていく〜
-          </p>
-          <p className="description">
-            Emologは、AIによる感情分析とリキャップによるセルフケア・ジャーナリングアプリです。
-            日々の感情を記録するだけでなく、AIが写真に対してコメントを返し
-            それらがリキャップとして映像になることで、
-            至高のエモいを体感します。
-          </p>
-        </main>
-
-        {/* 右側のナビゲーション */}
+        <p className="description">
+          Emologは、AIによる感情分析とリキャップによるセルフケア・ジャーナリングアプリです。
+          日々の感情を記録するだけでなく、AIが写真に対してコメントを返し
+          それらがリキャップとして映像になることで、至高のエモいを体感します。
+        </p>
+        
         <nav className="navigation">
-          <a href="/login" className="nav-link login-button">Logon/Login</a>
+          <a href="/login" className="nav-link login-button">
+            Logon/Login
+          </a>
         </nav>
+      </main>
 
-      </div>
-      </div>
-
-    
     </div>
   );
 }
-
-export default App;
