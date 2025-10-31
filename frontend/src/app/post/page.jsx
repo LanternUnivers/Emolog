@@ -115,6 +115,7 @@ const PostPage = () => {
         const formData = new FormData();
         formData.append('image', selectedFile, selectedFile.name);
         formData.append('user_id', userId); 
+        formData.append('caption', caption);
 
         try {
             const response = await fetch(API_ENDPOINT, {

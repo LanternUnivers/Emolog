@@ -17,34 +17,25 @@ function DiaryPage() {
     const [month, setMonth] = useState(today.getMonth()); // 0-indexed
     const [photos, setPhotos] = useState([]);
     const [selected, setSelected] = useState(null);
-    const [error, setError] = useState(null); // 追加
-    const [dayComments, setDayComments] = useState([]);
-    const [aiComment, setAiComment] = useState(null);
-    const [aiLoading, setAiLoading] = useState(false);
-
-    // --- timelapse state ---
+    const [error, setError] = useState(null); 
     const [generating, setGenerating] = useState(false);
     const [progress, setProgress] = useState(0); // 0..1
     const [timelapseUrl, setTimelapseUrl] = useState(null);
     const videoPreviewRef = useRef(null);
-
-    // pressed state for button press animation
     const [pressed, setPressed] = useState(false);
 
-    // detect if currently displayed month is "month-end" (今日がその月の最終日)
+    // 月末かどうかを判定するロジック
     const isCurrentMonthDisplayed = year === today.getFullYear() && month === today.getMonth();
     const lastDayOfDisplayedMonth = new Date(year, month + 1, 0).getDate();
     const isMonthEnd = isCurrentMonthDisplayed && today.getDate() === lastDayOfDisplayedMonth;
-
-    // add a class name variable for the button
     const timelapseBtnClass = isMonthEnd ? `${styles['timelapse-btn']} ${styles.glow}` : styles['timelapse-btn'];
 
-    // 💡 ユーザーセッションと写真をsupabaseから取得 (useEffect)
+
+    // ユーザーセッションと写真をsupabaseから取得 (useEffect)
     useEffect(() => {
         let mounted = true;
         (async () => {
             try {
-                // 1) supabase から現在のユーザーを取得
                 const { data } = await supabase.auth.getUser();
                 const user = data?.user || null;
                 if (!user) {
@@ -53,14 +44,14 @@ function DiaryPage() {
                 }
                 const userId = user.id;
 
-                // 💡 修正: Next.jsの404エラーを回避するため、FastAPIの完全なURLに修正 (http://localhost:8000/photos)
+                // APIからJST基準のデータを取得
                 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
                 const API_ENDPOINT = `${API_BASE_URL}/photos?user_id=${encodeURIComponent(userId)}`;
                 const res = await fetch(API_ENDPOINT);
                 
                 if (!res.ok) {
                     const text = await res.text().catch(() => null);
-                    console.warn('fetch /api/photos failed', res.status, text);
+                    console.warn('fetch /photos failed', res.status, text);
                     if (mounted) {
                         setPhotos([]);
                         setError(text || `API error: ${res.status}`);
@@ -69,6 +60,7 @@ function DiaryPage() {
                 }
                 const dataJson = await res.json();
                 if (mounted) {
+                    // dataJson には { id, date(JST), url, emotion, ai_comment, user_caption } が入っている
                     setPhotos(dataJson);
                     setError(null);
                 }
@@ -83,7 +75,7 @@ function DiaryPage() {
         return () => { mounted = false; };
     }, []); // 初期ロード時のみ実行
 
-    // helper: load image with CORS handling (may taint canvas if CORS not allowed)
+    // ... (loadImage, sleep, generateTimelapse 関数は変更なし) ...
     async function loadImage(url) {
         return await new Promise((resolve, reject) => {
             const img = new Image();
@@ -95,20 +87,18 @@ function DiaryPage() {
     }
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-    // generate timelapse for currently visible month
     async function generateTimelapse() {
         if (generating) return;
         setTimelapseUrl(null);
         setGenerating(true);
         setProgress(0);
         try {
-            // collect photos in this month
             const monthPhotos = photos
                 .filter(p => {
-                    const d = new Date(p.date);
+                    const d = new Date(p.date); // p.date は JST の YYYY-MM-DD
                     return d.getFullYear() === year && d.getMonth() === month;
                 })
-                .slice() // clone
+                .slice() 
                 .sort((a, b) => new Date(a.date) - new Date(b.date));
 
             if (monthPhotos.length === 0) {
@@ -116,14 +106,11 @@ function DiaryPage() {
                 setGenerating(false);
                 return;
             }
-
             if (typeof HTMLCanvasElement === 'undefined' || !HTMLCanvasElement.prototype.captureStream) {
                 setError('ブラウザが canvas.captureStream をサポートしていません。別のブラウザでお試しください。');
                 setGenerating(false);
                 return;
             }
-
-            // prepare canvas
             const firstImg = await loadImage(monthPhotos[0].url).catch(() => null);
             const width = firstImg ? Math.max(640, firstImg.naturalWidth) : 1280;
             const height = firstImg ? Math.max(480, firstImg.naturalHeight) : 720;
@@ -131,17 +118,14 @@ function DiaryPage() {
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
-
-            const fps = 2; // frames per second
-            const frameDuration = 1000 / fps; // ms per frame
-
+            const fps = 2; 
+            const frameDuration = 1000 / fps; 
             const stream = canvas.captureStream(fps);
             const mime = 'video/webm; codecs=vp9';
             let recorder;
             try {
                 recorder = new MediaRecorder(stream, { mimeType: mime });
             } catch (e) {
-                // try without codec hint
                 recorder = new MediaRecorder(stream);
             }
             const chunks = [];
@@ -150,17 +134,12 @@ function DiaryPage() {
                 recorder.onstop = () => resolve();
             });
             recorder.start();
-
-            // draw each photo as a frame (each image shown for frameCountPerPhoto frames)
-            // show one frame per photo to keep output short; adjust if you want longer per photo
             for (let i = 0; i < monthPhotos.length; i++) {
                 const p = monthPhotos[i];
                 try {
                     const img = await loadImage(p.url);
-                    // cover canvas (letterbox)
                     ctx.fillStyle = '#000';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    // compute fit
                     const arImg = img.naturalWidth / img.naturalHeight;
                     const arCanvas = canvas.width / canvas.height;
                     let dw, dh, dx, dy;
@@ -177,23 +156,18 @@ function DiaryPage() {
                     }
                     ctx.drawImage(img, dx, dy, dw, dh);
                 } catch (err) {
-                    // on image load error, leave previous frame / blank
                     console.warn('load image failed for timelapse', p.url, err);
                     ctx.fillStyle = '#444';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
-                // wait for at least one frameDuration so MediaRecorder captures this frame
                 await sleep(frameDuration);
                 setProgress((i + 1) / monthPhotos.length);
             }
-
             recorder.stop();
             await stopPromise;
-
             const blob = new Blob(chunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             setTimelapseUrl(url);
-            // autoplay preview if available
             await sleep(50);
             if (videoPreviewRef.current) {
                 videoPreviewRef.current.src = url;
@@ -208,62 +182,16 @@ function DiaryPage() {
         }
     }
 
+
     const grouped = useMemo(() => {
         const map = {};
         photos.forEach(p => {
-            // APIレスポンスの p.date はフルタイムスタンプなので、グルーピングキーには不適
-            map[p.date] = map[p.date] || []; 
-            map[p.date].push(p);
+            const ymd = p.date;
+            map[ymd] = map[ymd] || []; 
+            map[ymd].push(p);
         });
         return map;
     }, [photos]);
-
-    // selected が変わったら、その日のユーザーコメント一覧を取得し、AI要約を取得（/api/ai-summary があれば利用、なければ簡易要約）
-    useEffect(() => {
-        if (!selected) {
-            setDayComments([]);
-            setAiComment(null);
-            setAiLoading(false);
-            return;
-        }
-        const ymd = selected.date;
-        const comments = (grouped[ymd] || []).map(p => p.caption).filter(Boolean);
-        setDayComments(comments);
-
-        (async () => {
-            setAiLoading(true);
-            // サーバー側でAI要約を行うエンドポイントがあれば呼ぶ（任意）。無ければローカルで簡易要約。
-            try {
-                const res = await fetch('/api/ai-summary', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date: ymd, comments })
-                });
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json && json.summary) {
-                        setAiComment(json.summary);
-                        setAiLoading(false);
-                        return;
-                    }
-                }
-            } catch (e) {
-                // 無視してローカル要約へフォールバック
-            }
-
-            // フォールバックの簡易要約
-            let summary;
-            if (comments.length === 0) summary = 'この日はコメントがありません。';
-            else if (comments.length === 1) summary = `一言でまとめると：${comments[0]}`;
-            else {
-                const sample = comments.slice(0, 2).join(' / ');
-                const rest = Math.max(0, comments.length - 2);
-                summary = rest > 0 ? `${sample} …他 ${rest} 件の思い出` : sample;
-            }
-            setAiComment(summary);
-            setAiLoading(false);
-        })();
-    }, [selected, grouped]);
 
     const weeks = useMemo(() => {
         const first = new Date(year, month, 1);
@@ -294,6 +222,23 @@ function DiaryPage() {
         else setMonth(m => m + 1);
     };
 
+    // --- スライドボタン用のロジック --- 
+    const dailyPhotos = selected ? grouped[selected.date] : [];
+    const currentIndex = selected ? dailyPhotos.findIndex(p => p.id === selected.id) : -1;
+    
+    const hasPrev = currentIndex > 0;
+    const hasNext = currentIndex > -1 && currentIndex < dailyPhotos.length - 1;
+
+    // stopPropagation() でモーダル全体が閉じるのを防ぐ
+    const showPrev = (e) => {
+        e.stopPropagation(); 
+        if (hasPrev) setSelected(dailyPhotos[currentIndex - 1]);
+    };
+    const showNext = (e) => {
+        e.stopPropagation(); 
+        if (hasNext) setSelected(dailyPhotos[currentIndex + 1]);
+    };
+
     return (
         <div className={styles['diary-root']}>
             <header className={styles['diary-header']} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -301,7 +246,6 @@ function DiaryPage() {
                 <h2 style={{ margin: 0 }}>{year}年 {month + 1}月</h2>
                 <button onClick={nextMonth} aria-label="次の月">▶</button>
 
-                {/* timelapse controls */}
                 <div style={{ marginLeft: 12 }}>
                     <button
                         onClick={generateTimelapse}
@@ -324,7 +268,6 @@ function DiaryPage() {
                 </div>
             )}
 
-            {/* progress / preview */}
             {generating && (
                 <div style={{ padding: 8 }}>
                     作成中: {(progress * 100).toFixed(0)}%
@@ -340,71 +283,106 @@ function DiaryPage() {
                 </div>
             )}
 
-            <table className={styles.calendar}>
-                <thead>
-                    <tr>
-                        <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {weeks.map((week, i) => (
-                        <tr key={i}>
-                            {week.map((day, j) => {
-                                if (!day) return <td key={j} className="empty"></td>;
-                                const ymd = formatYMD(day);
-                                const dayPhotos = grouped[ymd] || [];
-                                return (
-                                    <td key={j} className={styles['day-cell']}>
-                                        <div className={styles['day-number']}>{day.getDate()}</div>
-                                        <div className={styles.thumbs}>
-                                            {dayPhotos.slice(0, 3).map(p => (
-                                                <img
-                                                    key={p.id}
-                                                    src={p.url}
-                                                    alt={p.caption || ''}
-                                                    className={styles.thumb}
-                                                    onClick={() => setSelected(p)}
-                                                />
-                                            ))}
-                                        </div>
-                                        {dayPhotos.length > 3 && (
-                                            <div className={styles['more-count']}>+{dayPhotos.length - 3}</div>
-                                        )}
-                                    </td>
-                                );
-                            })}
+
+            <div className={styles['calendar-wrapper']}>
+                <table className={styles.calendar}>
+                    <thead>
+                        <tr>
+                            <th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {weeks.map((week, i) => (
+                            <tr key={i}>
+                                {week.map((day, j) => {
+                                    if (!day) return <td key={j} className={styles.empty}></td>;
+                                    const ymd = formatYMD(day);
+                                    const dayPhotos = grouped[ymd] || [];
+                                    return (
+                                        <td key={j} className={styles['day-cell']}>
+                                            <div className={styles['day-number']}>{day.getDate()}</div>
+                                            <div className={styles.thumbs}>
+                                                {dayPhotos.slice(0, 3).map(p => (
+                                                    <img
+                                                        key={p.id}
+                                                        src={p.url}
+                                                        alt={p.user_caption || ''}
+                                                        className={styles.thumb}
+                                                        onClick={() => setSelected(p)}
+                                                    />
+                                                ))}
+                                            </div>
+                                            {dayPhotos.length > 3 && (
+                                                <div className={styles['more-count']}>+{dayPhotos.length - 3}</div>
+                                            )}
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
 
             {selected && (
                 <div className={styles.modal} onClick={() => setSelected(null)}>
                     <div className={styles['modal-content']} onClick={(e) => e.stopPropagation()}>
-                        <button className={styles.close} onClick={() => setSelected(null)}>✕</button>
-                        {/* 画像はクリックで新しいタブで開く */}
-                        <img
-                            src={selected.url}
-                            alt={selected.caption}
-                            style={{ maxWidth: '100%', cursor: 'zoom-in' }}
-                            onClick={() => window.open(selected.url, '_blank')}
-                        />
-                        <div style={{ marginTop: 12 }}>
-                            <strong>ユーザーコメント</strong>
-                            {dayComments.length === 0 ? (
-                                <div style={{ color: '#666' }}>コメントはありません</div>
-                            ) : (
-                                <ul style={{ marginTop: 6 }}>
-                                    {dayComments.map((c, i) => <li key={i}>{c}</li>)}
-                                </ul>
+                        
+                        {/* カラム1: 画像 */}
+                        <div className={styles['modal-image-wrapper']}>
+                            {hasPrev && (
+                                <button 
+                                    className={`${styles['modal-nav']} ${styles['nav-prev']}`} 
+                                    onClick={showPrev}
+                                    aria-label="前の写真"
+                                >
+                                    &lt;
+                                </button>
+                            )}
+                            <img
+                                src={selected.url}
+                                alt={selected.user_caption || '投稿画像'}
+                            />
+                            {hasNext && (
+                                <button 
+                                    className={`${styles['modal-nav']} ${styles['nav-next']}`} 
+                                    onClick={showNext}
+                                    aria-label="次の写真"
+                                >
+                                    &gt;
+                                </button>
                             )}
                         </div>
-                        <div style={{ marginTop: 10 }}>
-                            <strong>AIのコメント</strong>
-                            <div style={{ color: '#333', marginTop: 6 }}>
-                                {aiLoading ? '要約を生成中...' : (aiComment || '—')}
+
+                        {/* カラム2: 詳細 */}
+                        <div className={styles['modal-details']}>
+                            <button className={styles.close} onClick={() => setSelected(null)}>✕</button>
+
+                            <h3>あなたのコメント</h3>
+                            {selected.user_caption ? (
+                                <p>{selected.user_caption}</p>
+                            ) : (
+                                <p className={styles['no-comment']}>この投稿にコメントはありません。</p>
+                            )}
+
+                            <h3>AIの分析コメント</h3>
+                            <div className={styles['ai-comment-box']}>
+                                <p>
+                                    <strong>{selected.emotion}</strong><br/>
+                                    {selected.ai_comment && (
+                                        <>
+                                            {selected.ai_comment}
+                                        </>
+                                    )}
+                                </p>
                             </div>
+                            {dailyPhotos.length > 1 && (
+                                <p className={styles['photo-counter']}>
+                                    {currentIndex + 1} / {dailyPhotos.length}
+                                </p>
+                            )}                            
                         </div>
+
                     </div>
                 </div>
             )}
@@ -412,7 +390,6 @@ function DiaryPage() {
     );
 }
 
-// export default wrapper to protect the diary route
 export default function DiaryPageWrapper() {
     return (
         <AuthGuard>

@@ -86,6 +86,7 @@ app.add_middleware(
 async def analyze_and_save(
     image: UploadFile = File(...),
     user_id: str = Form(...),
+    caption: str = Form(None),
 ):
     try:
         # 1. 画像ファイルをメモリ上に読み込む
@@ -117,8 +118,10 @@ async def analyze_and_save(
         emotion_text = analysis_result.get("emotion", "分析不能")
         comment_text = analysis_result.get("comment", "日記コメント生成失敗")
 
-        # 5. 画像をSupabase Storageにアップロード
-        file_path = f"{user_id}/{int(time.time())}_{image.filename}"
+        # 5. 画像をSupabase Storageにアップロード(安全なファイル名生成)
+        file_extension = os.path.splitext(image.filename)[1]
+        safe_filename = f"{int(time.time())}{file_extension}"
+        file_path = f"{user_id}/{safe_filename}"
         
         # Storageにアップロード
         supabase.storage.from_(BUCKET_NAME).upload(
@@ -134,9 +137,10 @@ async def analyze_and_save(
         data, count = supabase.table("posts").insert({
             "user_id": user_id,
             "emotion": emotion_text,
-            "comment": comment_text,
+            "ai_comment": comment_text,
             "image_url": image_url,
             "file_path": file_path,
+            "user_caption": caption
         }).execute()
 
         # 7. 成功レスポンスをフロントエンドに返す
@@ -198,16 +202,17 @@ async def get_user_diaries(user_id: str):
                 "id": post["id"],
                 "date": date_only,
                 "url": final_image_url,
-                "caption": f"AI分析: {post.get('emotion', 'N/A')} - {post.get('comment', 'N/A')}",
+                "emotion": post.get("emotion", ""),
+                "ai_comment": post.get("ai_comment", ""),
+                "user_caption": post.get("user_caption", "") 
             })
         
         return photos_data
+    
 
     except Exception as e:
         print(f"Error fetching diaries: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch diary data: {str(e)}")
-    
-# (Removed older mock `GET /user-stats` endpoint to avoid returning a constant 365 streak.)
     
 # -----------------
 # ユーザー統計情報取得API
