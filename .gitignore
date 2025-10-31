@@ -2,3 +2,4 @@
 .env.local
 __pycache__/
 *.pyc
+backend/__pycache__/main.cpython-311.pyc

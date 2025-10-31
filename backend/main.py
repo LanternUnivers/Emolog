@@ -8,30 +8,46 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from pathlib import Path
 
 from supabase import create_client, Client
 from PIL import Image
 
-# Google Gemini関連のライブラリ
 from google import genai
 from google.genai import types
 
 # -----------------
 # 1. 環境設定と初期化
 # -----------------
-# .env.localファイルから環境変数を読み込む
-load_dotenv(".../.env.local")
+# .env/.env.local をプロジェクトルートから読み込む（backend ディレクトリから起動しても動作するように）
+BASE_DIR = Path(__file__).resolve().parent.parent
+env_local = BASE_DIR / ".env.local"
+env_file = BASE_DIR / ".env"
+
+if env_local.exists():
+    load_dotenv(env_local)
+elif env_file.exists():
+    load_dotenv(env_file)
+else:
+    # どちらもなければ通常の探索にフォールバック
+    load_dotenv()
 
 # 環境変数から設定値を取得
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_PUBLIC_KEY = os.getenv("SUPABASE_PUBLIC_KEY")
+SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")  # サーバー側で使用する service_role / secret キー
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+# 必須の設定の検証
+if not SUPABASE_URL or not SUPABASE_SECRET_KEY:
+    raise ValueError("Supabase の URL またはシークレットキー(SUPABASE_SECRET_KEY)が設定されていません。サーバー側は service_role（秘密鍵）を使用してください。")
+
 # Supabaseクライアントの初期化
-if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
-    raise ValueError("Supabase環境変数が設定されていません。")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+if not SUPABASE_URL or not SUPABASE_SECRET_KEY:
+    raise ValueError("SupabaseのURLまたはシークレットキー(SUPABASE_SECRET_KEY)が設定されていません。")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
+
 BUCKET_NAME = "post_photos"
 
 # Geminiクライアントの初期化
@@ -50,7 +66,6 @@ app = FastAPI()
 # フロントエンド(localhost:3000)からのアクセスを許可
 origins = [
     "http://localhost:3000",
-    "https://tk-b-2510-psi.vercel.app",
     "https://emolog-psi.vercel.app"
 ]
 
@@ -63,7 +78,7 @@ app.add_middleware(
 )
 
 # -----------------
-# 4. コア機能：AI分析と保存エンドポイント (P1タスク)
+# 4. コア機能：AI分析と保存エンドポイント
 # -----------------
 # 写真ファイルとユーザーIDを受け取り、AI分析してDBに保存
 @app.post("/analyze-and-save")
@@ -140,14 +155,14 @@ async def analyze_and_save(
 
 
 # -----------------
-# 5. ヘルスチェック
+#  ヘルスチェック
 # -----------------
 @app.get("/")
 def read_root():
     return {"status": "ok", "service": "Emolog Backend"}
 
 # -----------------
-# 6. 日記表示用のAPI (P2タスク)
+# 6. 日記表示用のAPI
 # -----------------
 
 @app.get("/photos")
