@@ -47,7 +47,7 @@ async def update_profile(user_id: str, profile_update: ProfileUpdate):
         if not update_data:
             raise HTTPException(status_code=400, detail="No fields to update")
 
-        res = supabase.table("profiles").update(update_data).eq("id", user_id).select("username, bio, avatar_url").single().execute()
+        res = supabase.table("profiles").update(update_data).select("username, bio, avatar_url").eq("id", user_id).single().execute()
         
         if not res.data:
             raise HTTPException(status_code=404, detail="Profile not found or update failed")

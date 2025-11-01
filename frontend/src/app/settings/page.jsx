@@ -6,7 +6,10 @@ import AuthGuard from '../../lib/AuthGuard';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
-// 歯車アイコン
+// バックエンドAPIのURL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+// 歯車アイコン (変更なし)
 const SettingsIcon = ({ onClick }) => {
     const [isHovered, setIsHovered] = React.useState(false);
     const className = isHovered
@@ -32,11 +35,10 @@ const SettingsIcon = ({ onClick }) => {
     );
 };
 
-// 設定画面コンポーネント
+// 設定画面コンポーネント (ログアウト機能, 変更なし)
 const SettingsPage = ({ onGoBack }) => {
     const router = useRouter();
 
-    // ログアウト処理
     const handleLogout = async () => {
         if (confirm('本当にログアウトしますか？')) {
             try {
@@ -79,56 +81,140 @@ const SettingsPage = ({ onGoBack }) => {
     );
 };
 
+
+// --- (ここからが主な変更点です) ---
+
 // メインのプロフィール表示コンポーネント
 const MyProfile = ({ onNavigateToSettings }) => {
-    const [profile, setProfile] = React.useState({
+    const [userId, setUserId] = useState(null);
+    const [profile, setProfile] = useState({
         username: '読み込み中...',
-        bio: '写真を撮るのが好きです。旅行とグルメが趣味です。🌍🍜',
+        bio: '',
         photoUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
     });
     
-    // Supabaseからユーザー情報を取得
-    React.useEffect(() => {
+    // 編集モード用のState
+    const [isEditing, setIsEditing] = useState(false);
+    const [editUsername, setEditUsername] = useState('');
+    const [editBio, setEditBio] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    
+    // Supabaseからユーザー情報とプロフィール情報を取得
+    useEffect(() => {
         let mounted = true;
-        const fetchUser = async () => {
+        const fetchUserAndProfile = async () => {
             try {
-                const { data: { user }, error } = await supabase.auth.getUser();
+                // 1. 認証ユーザー(ID)を取得
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-                if (error && mounted) {
-                    console.error("ユーザー情報の取得エラー:", error.message);
-                    setProfile(prev => ({ ...prev, username: 'エラー' }));
+                if (!user || authError) {
+                    if (mounted) console.error("ユーザー情報の取得エラー:", authError?.message);
                     return;
                 }
+                
+                if (mounted) {
+                    setUserId(user.id);
 
-                if (user && mounted) {
-                    const email = user.email;
-                    let newUsername = email ? email.split('@')[0] : (user.user_metadata?.full_name || 'ユーザー名未設定');
+                    // 2. バックエンドAPI に GET リクエストを送信
+                    const profileEndpoint = `${API_BASE_URL}/profile/${encodeURIComponent(user.id)}`;
+                    const res = await fetch(profileEndpoint);
                     
-                    setProfile(prev => ({ 
-                        ...prev, 
-                        username: newUsername,
-                    }));
-                } else if (mounted) {
-                    setProfile(prev => ({ ...prev, username: 'ゲスト' }));
+                    if (res.ok) {
+                        const profileData = await res.json();
+                        
+                        // メールアドレスから生成した名前をフォールバックとして使用
+                        const fallbackUsername = user.email ? user.email.split('@')[0] : 'ユーザー';
+                        
+                        if (mounted) {
+                            setProfile(prev => ({ 
+                                ...prev, 
+                                username: profileData.username || fallbackUsername,
+                                bio: profileData.bio || '自己紹介が未設定です。',
+                                // TODO: avatar_url の処理
+                            }));
+                            // 編集フォームの初期値もセット
+                            setEditUsername(profileData.username || fallbackUsername);
+                            setEditBio(profileData.bio || '');
+                        }
+                    } else {
+                         // プロファイル取得失敗（RLSなど）
+                        console.warn('Failed to fetch profile', res.status);
+                        const fallbackUsername = user.email ? user.email.split('@')[0] : 'ユーザー';
+                         if (mounted) {
+                            setProfile(prev => ({ ...prev, username: fallbackUsername, bio: 'プロフィールの読込失敗' }));
+                         }
+                    }
                 }
+
             } catch (err) {
                  if (mounted) {
-                     console.error("ユーザー情報取得中に予期せぬエラー:", err);
-                     setProfile(prev => ({ ...prev, username: 'エラー' }));
+                     console.error("プロフィール取得中に予期せぬエラー:", err);
+                     setProfile(prev => ({ ...prev, username: 'エラー', bio: err.message }));
                  }
             }
         };
 
-        fetchUser();
+        fetchUserAndProfile();
         return () => { mounted = false; };
     }, []);
     
+    // 保存処理
+    const handleSave = async (e) => {
+        e.preventDefault();
+        if (!userId) return;
+        setIsLoading(true);
+        
+        try {
+            const profileEndpoint = `${API_BASE_URL}/profile/${encodeURIComponent(userId)}`;
+            
+            const res = await fetch(profileEndpoint, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: editUsername,
+                    bio: editBio
+                })
+            });
+            
+            const updatedProfile = await res.json();
+            
+            if (!res.ok) {
+                throw new Error(updatedProfile.detail || '更新に失敗しました');
+            }
+            
+            // 表示用のStateを更新
+            setProfile(prev => ({
+                ...prev,
+                username: updatedProfile.username,
+                bio: updatedProfile.bio
+            }));
+            
+            // 編集モードを終了
+            setIsEditing(false);
+
+        } catch (err) {
+            console.error("更新エラー:", err);
+            alert(`更新に失敗しました: ${err.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    // キャンセル処理
+    const handleCancel = () => {
+        // フォームの値を元の状態に戻す
+        setEditUsername(profile.username);
+        setEditBio(profile.bio);
+        setIsEditing(false);
+    };
+
     const showCameraIcon = profile.photoUrl.includes('data:image/png');
 
     return (
         <div className={styles['settings-container']}>
             <SettingsIcon onClick={onNavigateToSettings} />
             <div className={styles['profile-header']}>
+                {/* --- プロフィール写真エリア --- */}
                 <div className={styles['profile-photo-area']}>
                     <img 
                         src={profile.photoUrl} 
@@ -139,11 +225,68 @@ const MyProfile = ({ onNavigateToSettings }) => {
                     {showCameraIcon && <span className={styles['camera-icon']}>📸</span>}
                 </div>
 
+                {/* --- 情報エリア --- */}
                 <div className={styles['profile-info-area']}>
-                    <div className={styles['user-actions']}>
-                        <h2 className={styles['username']}>{profile.username}</h2>
-                    </div>
-                    <p className={styles['bio-text']}>{profile.bio}</p>
+                    
+                    {/* --- 編集モードでない場合（isEditing === false） --- */}
+                    {!isEditing && (
+                        <>
+                            <div className={styles['user-actions']}>
+                                <h2 className={styles['username']}>{profile.username}</h2>
+                                <button 
+                                    className={styles['edit-button']}
+                                    onClick={() => setIsEditing(true)}
+                                >
+                                    プロフィールを編集
+                                </button>
+                            </div>
+                            <p className={styles['bio-text']}>{profile.bio}</p>
+                        </>
+                    )}
+                    
+                    {/* --- 編集モードの場合（isEditing === true） --- */}
+                    {isEditing && (
+                        <form className={styles['edit-form']} onSubmit={handleSave}>
+                            <div className={styles['form-group']}>
+                                <label htmlFor="username">ユーザー名</label>
+                                <input 
+                                    id="username"
+                                    className={styles['form-input']}
+                                    value={editUsername}
+                                    onChange={(e) => setEditUsername(e.target.value)}
+                                    disabled={isLoading}
+                                />
+                            </div>
+                            <div className={styles['form-group']}>
+                                <label htmlFor="bio">自己紹介</label>
+                                <textarea
+                                    id="bio"
+                                    className={`${styles['form-input']} ${styles['form-textarea']}`}
+                                    value={editBio}
+                                    onChange={(e) => setEditBio(e.target.value)}
+                                    disabled={isLoading}
+                                    rows={4}
+                                />
+                            </div>
+                            
+                            <button 
+                                type="submit" 
+                                className={styles['save-button']} 
+                                disabled={isLoading}
+                            >
+                                {isLoading ? '保存中...' : '保存'}
+                            </button>
+                            <button 
+                                type="button"
+                                className={`${styles['edit-button']} ${styles['ml-10']}`}
+                                onClick={handleCancel}
+                                disabled={isLoading}
+                            >
+                                キャンセル
+                            </button>
+                        </form>
+                    )}
+                    
                 </div>
             </div>            
         </div>

@@ -36,6 +36,25 @@ export function HomePage() {
         const name = email.split('@')[0];
         if (mounted) setUsername(name);
 
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        try {
+          const profileEndpoint = `${API_BASE_URL}/profile/${encodeURIComponent(user.id)}`;
+          const profileRes = await fetch(profileEndpoint);
+          
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            if (mounted) {
+              setUsername(profileData.username || fallbackUsername);
+            }
+          } else {
+            // プロフィール取得失敗
+            if (mounted) setUsername(fallbackUsername);
+          }
+        } catch (profileErr) {
+          console.error('Error fetching /profile', profileErr);
+          if (mounted) setUsername(fallbackUsername);
+        }
+
 
         try {
             const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
